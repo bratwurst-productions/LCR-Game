@@ -14,3 +14,4 @@ The game will be designed using project boards and developed using our organizat
 
 The MVP will include all needed functionality from the project requirements, as well as having elements from API calls including popular image and music APIs.
 
+Ver1.1
