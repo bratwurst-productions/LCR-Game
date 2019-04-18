@@ -91,6 +91,9 @@ function play(gameobj) {
 	var currentPlayer = 0;
 	gamestatus1.textContent = "Player " + currentPlayer;
 	gamestatus2.textContent = "Click the button to roll one die each of your chips.";
+	var r= $('<input type="button" value="click to roll"/>');
+	$("#gamestatus2").append(r);
+
 	gameobj.players.forEach(function(){	gameobj.rollDice(gameobj.players[currentPlayer]); });
 }
 	
