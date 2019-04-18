@@ -13,3 +13,6 @@ Our organization's github flow involves converting the kanban project board card
 After a developer completes work on an issue, the issue should be deployed to gh-pages to see the hosted site's behavior. If code owners sign off on the code reivew, the pull request should be granted and the code should be merged into master. The ticket should be closed, which will cause the kanban card to move to the "done" column.
 
 The Minimum Viable Product will allow for 3 to 20 unique players to connect to the application's page to synchronize and play a game of LCR. Following completion of the game, a winner is decided according to the rules, and a game over message is displayed to all participants.
+
+mockup:
+https://drive.google.com/open?id=1rm5MKYMeP-za5JlQrSxRAnx-rgVbZaSb
