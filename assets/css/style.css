@@ -4,4 +4,40 @@
 
 footer {
 	width: 100%;
+	height: 10%;
+	margin-bottom: 10px;
+	position: relative;
+	background-color: antiquewhite;
+	
+}
+
+.col1-1{
+	padding: 5px;
+	margin: 10px;
+	width: 550px;
+	height: 400px;
+	background-color: wheat;
+	float: left;
+}
+
+.col1-2{
+	padding: 5px;
+	margin: 10px;
+	width: 550px;
+	height: 400px;
+	background-color: wheat;
+	float: right;
+}
+
+.col2{
+	padding: 5px;
+	margin: 10px;
+	width: 550px;
+	height: 400px;
+	background-color: blueviolet;
+	float: left;
+}
+
+.btn-danger{
+	margin: 20px;
 }
