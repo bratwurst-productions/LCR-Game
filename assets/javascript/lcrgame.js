@@ -88,7 +88,6 @@ function initialize(gameobj) {
 }
 
 function play(gameobj) {
-	console.log(gameobj);
 	var currentPlayer = 0;
 	gamestatus1.textContent = "Player " + currentPlayer;
 	gamestatus2.textContent = "Click the button to roll one die each of your chips.";
@@ -98,3 +97,28 @@ function play(gameobj) {
 initialize(game);
 
 var newInterv = setInterval(function(){if (game.initialized) { clearInterval(newInterv); play(game);}}, 2000);
+
+
+
+//This function rolls a single dice and returns the value of that dice
+function rollonedice(){
+	let possibledicevalues =["L", "R", "C", "snake_eye","snake_eye","snake_eye"]
+	let rand = possibledicevalues[Math.floor(Math.random() * possibledicevalues.length)];
+	return rand;
+}
+
+
+//this function takes care of the players dice roll depending on the amount of tokens they have
+//if the player has 4 tokens then the function will return an array of 4 dice/values
+function playersroll(numberofplayerstokens){
+	let playerrollresults =[]
+	for (var i= 0; i<numberofplayerstokens;i++){
+		playerrollresults.push(rollonedice())
+	}
+	return playerrollresults;
+}
+
+console.log(playersroll(4))
+
+
+
