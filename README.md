@@ -1,16 +1,15 @@
-# LCR
-the dice game Left-Center-Right
+# LCR Online -- the dice game Left-Center-Right
 
 Project Proposal -- LEFT-CENTER-RIGHT -- a game of dice
 
 Organization: Bratwurst Productions
 
+Our project is an implementation of a multiplayer game of dice known as L-C-R, or “Left-Center-Right.” The rules are simple and the game is a fun one for parties, because it can be played for cash, making it more interesting for social gatherings.
 
-For our project we have decided to implement a multiplayer game of dice known as L-C-R, or “Left-Center-Right.” The rules are simple and the game is a fun one for parties, because it can be played for cash, making it more interesting for social gatherings.
+We implemented this multiplayer game using Firebase's Realtime Database service. We use this service to track the game’s states and also to synchronize the various players' browsers with the communal data. The Realtime Database includes functionality which can be used to notify clients who are connected to the database whenever a value is updated. With this capability we can build a game for any number of players from 3 to 20. Future iterations will contain automated agents as players, although the MVP doesn't contain this requirement.
 
-We propose that we use firebase to track the game’s states, and that we develop a game of L-C-R which can support any number of players from 3 to 10, including at least one human player, with the rest of the players automated.
+Our organization's github flow involves converting the kanban project board cards into issues, and then working the issues inside of a new branch named after the issue ID.
 
-The game will be designed using project boards and developed using our organization’s shared repository. Issues will be defined and resolved in github issues.
+After a developer completes work on an issue, the issue should be deployed to gh-pages to see the hosted site's behavior. If code owners sign off on the code reivew, the pull request should be granted and the code should be merged into master. The ticket should be closed, which will cause the kanban card to move to the "done" column.
 
-The MVP will include all needed functionality from the project requirements, as well as having elements from API calls including popular image and music APIs.
-
+The Minimum Viable Product will allow for 3 to 20 unique players to connect to the application's page to synchronize and play a game of LCR. Following completion of the game, a winner is decided according to the rules, and a game over message is displayed to all participants.
