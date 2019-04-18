@@ -15,4 +15,4 @@ After a developer completes work on an issue, the issue should be deployed to gh
 The Minimum Viable Product will allow for 3 to 20 unique players to connect to the application's page to synchronize and play a game of LCR. Following completion of the game, a winner is decided according to the rules, and a game over message is displayed to all participants.
 
 mockup:
-![LCROnline_Mockup](https://user-images.githubusercontent.com/46508146/56331899-b9dda000-6153-11e9-995c-e684de4c9da0.png)
+![LCROnline_Mockup](https://user-images.githubusercontent.com/46508146/56332224-1db49880-6155-11e9-9797-3b8e2d210599.png)
