@@ -13,7 +13,8 @@
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
       integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
-      crossorigin="anonymous"/>
+      crossorigin="anonymous"
+    />
 
     <link rel="stylesheet" href="./assets/css/style.css" />
 
@@ -25,35 +26,41 @@
     </div>
     <div class="container">
 
-			<button type="button" class="btn btn-danger">Roll the dice</button>
-
       <div class="row">
-        <div class="col1-1">
-						<h3>Game Status1</h3>
+
+        <div class="col-6">
+          <button type="button" class="btn btn-danger">Roll the dice</button>
+          <h3>Game Status1</h3>
           <p id="gamestatus1"></p>
-				</div>
-				<div class="col1-2">
-					<h3>Game Status2</h3>
-					<p id="gamestatus2"></p>
         </div>
-			</div>
 
-      <div class="row">
-        <div class="col2">
-					<p id="livechat"></p>
-					<h3>Live Chat</h3>
+
+        <div class="col-6">
+          <h3>Game Status2</h3>
+          <p id="gamestatus2"></p>
+
+            <div id="chatpanel">
+              <p id="livechat"></p>
+              <h3>Live Chat</h3>
+            </div>
+    
+            <div id="empty1">
+              <h3>empty1</h3>
+            </div>
+    
+            <div id="empty2">
+              <h3>empty2</h3>
+            </div>
+        </div>
+
+        
+
         </div>
       </div>
-		</div>
-
-		
-
 
     <footer>
       <p id="footer">&copy;Copyright Kegstands Unlimited</p>
     </footer>
-
-
 
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
