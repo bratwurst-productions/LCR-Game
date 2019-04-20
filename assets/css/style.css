@@ -8,15 +8,16 @@
 	margin: 20px;
 }
 
-.col-6{
+.col{
 	padding: 5px;
 	margin: 10px;
 	height: 650px;
 	background-color: wheat;
 	float: left;
+	
 }
 
-.col-6{
+.col{
 	padding: 5px;
 	margin: 10px;
 	height: 650px;
