@@ -33,95 +33,142 @@ If you're playing with money, try not to lose too much. You can ideally play wit
 */
 
 // Definitions: L means pay a chip to the left  << which means decrease index, unless it decreases below zero in which case it is equal to index of final game.player
-//Similarly for right/ 
+//Similarly for right/
 // C means pay to the central pot
 
-// 
+//
 const gamestatus1 = document.getElementById("gamestatus1");
 var gamestatus2 = document.getElementById("gamestatus2");
 
 const game = {
-	players		:	[],
-	over		:	false,
-	initialized	:	false,
-	rollDice	:	function(player) { console.log(player.chips); }
+  players: [],
+  over: false,
+  initialized: false,
+  rollDice: function(player) {
+    console.log(player.chips);
+  }
 };
 
 function initialize(gameobj) {
-	var enteredPlayers = null;
-	gamestatus1.textContent = "How many players? (For 3 to 20 players)";
-	gamestatus2.textContent = "";
-	
-	document.onkeyup = function(event) {
-		var pressedkey = event.key;
-		var numString = "";
-		if ("1234567890".includes(pressedkey)) {
-			if(gamestatus2.textContent.length < 2) gamestatus2.textContent += pressedkey;
-			else if (gamestatus2.textContent.length === 2) {
-				numString = gamestatus2.textContent.charAt(1) + pressedkey;
-				gamestatus2.textContent = numString;
-			}
-		}
-		if (event.which === 13) {
-			
-			if (parseInt(gamestatus2.textContent) > 2 && parseInt(gamestatus2.textContent) < 21) {
-				document.onkeyup = null; // good number of players, stop listening for numbers
-				enteredPlayers = parseInt(gamestatus2.textContent);
-				gamestatus1.textContent = "";
-				gamestatus2.textContent = "";
-				initializePlayers(enteredPlayers);
-				gameobj.initialized = true;
-			}
-			else {
-				gamestatus1.textContent = "please choose a number of players from 3 to 20."; gamestatus2.textContent = "";
-			}
-		}
-	}
-	
-	function initializePlayers(num) {
-		for (var x = 0; x < num; x++) {
-			var newPlayer = {};
-			newPlayer.chips = 3;
-			gameobj.players.push(newPlayer);
-		}
-	}	
+  var enteredPlayers = null;
+  gamestatus1.textContent = "How many players? (For 3 to 20 players)";
+  gamestatus2.textContent = "";
+
+  document.onkeyup = function(event) {
+    var pressedkey = event.key;
+    var numString = "";
+    if ("1234567890".includes(pressedkey)) {
+      if (gamestatus2.textContent.length < 2)
+        gamestatus2.textContent += pressedkey;
+      else if (gamestatus2.textContent.length === 2) {
+        numString = gamestatus2.textContent.charAt(1) + pressedkey;
+        gamestatus2.textContent = numString;
+      }
+    }
+    if (event.which === 13) {
+      if (
+        parseInt(gamestatus2.textContent) > 2 &&
+        parseInt(gamestatus2.textContent) < 21
+      ) {
+        document.onkeyup = null; // good number of players, stop listening for numbers
+        enteredPlayers = parseInt(gamestatus2.textContent);
+        gamestatus1.textContent = "";
+        gamestatus2.textContent = "";
+        initializePlayers(enteredPlayers);
+        gameobj.initialized = true;
+      } else {
+        gamestatus1.textContent =
+          "please choose a number of players from 3 to 20.";
+        gamestatus2.textContent = "";
+      }
+    }
+  };
+
+  function initializePlayers(num) {
+    for (var x = 0; x < num; x++) {
+      var newPlayer = {};
+      newPlayer.chips = 3;
+      gameobj.players.push(newPlayer);
+    }
+  }
 }
 
 function play(gameobj) {
-	var currentPlayer = 0;
-	gamestatus1.textContent = "Player " + currentPlayer;
-	gamestatus2.textContent = "Click the button to roll one die each of your chips.";
-	var r= $('<input type="button" value="click to roll"/>');
-	$("#gamestatus2").append(r);
+  var currentPlayer = 0;
+  gamestatus1.textContent = "Player " + currentPlayer;
+  gamestatus2.textContent =
+    "Click the button to roll one die each of your chips.";
+  var r = $('<input type="button" value="click to roll"/>');
+  $("#gamestatus2").append(r);
 
-	gameobj.players.forEach(function(){	gameobj.rollDice(gameobj.players[currentPlayer]); });
+  gameobj.players.forEach(function() {
+    gameobj.rollDice(gameobj.players[currentPlayer]);
+  });
 }
-	
+
 initialize(game);
 
-var newInterv = setInterval(function(){if (game.initialized) { clearInterval(newInterv); play(game);}}, 2000);
-
-
+var newInterv = setInterval(function() {
+  if (game.initialized) {
+    clearInterval(newInterv);
+    play(game);
+  }
+}, 2000);
 
 //This function rolls a single dice and returns the value of that dice
-function rollonedice(){
-	let possibledicevalues =["L", "R", "C", "snake_eye","snake_eye","snake_eye"]
-	let rand = possibledicevalues[Math.floor(Math.random() * possibledicevalues.length)];
-	return rand;
+function rollonedice() {
+  let possibledicevalues = [
+    "L",
+    "R",
+    "C",
+    "snake_eye",
+    "snake_eye",
+    "snake_eye"
+  ];
+  let rand =
+    possibledicevalues[Math.floor(Math.random() * possibledicevalues.length)];
+  return rand;
 }
-
 
 //this function takes care of the players dice roll depending on the amount of tokens they have
 //if the player has 4 tokens then the function will return an array of 4 dice/values
-function playersroll(numberofplayerstokens){
-	let playerrollresults =[]
-	for (var i= 0; i<numberofplayerstokens;i++){
-		playerrollresults.push(rollonedice())
-	}
-	return playerrollresults;
+function playersroll(numberofplayerstokens) {
+  let playerrollresults = [];
+  for (var i = 0; i < numberofplayerstokens; i++) {
+    playerrollresults.push(rollonedice());
+  }
+  return playerrollresults;
 }
 
-console.log(playersroll(4))
+function renderdiceimagesfromroll(arrofdicefaces) {
+  for (var i = 0; i < arrofdicefaces.length; i++) {
+    if (arrofdicefaces[i] === "snake_eye") {
+      $("#insertdiceimages").append(
+        '<img id="diceimage" src="assets/Images/snake eyes dice face.png" />'
+      );
+    }
+    if (arrofdicefaces[i] === "R") {
+      $("#insertdiceimages").append(
+        '<img id="diceimage" src="assets/Images/Rdice.png" />'
+      );
+    }
+    if (arrofdicefaces[i] === "L") {
+      $("#insertdiceimages").append(
+        '<img id="diceimage" src="assets/Images/Ldice.png" />'
+      );
+    }
+    if (arrofdicefaces[i] === "C") {
+      $("#insertdiceimages").append(
+        '<img id="diceimage" src="assets/Images/Cdice.png" />'
+      );
+    }
+  }
+}
 
 
+$("#rolldicebutton").on("click", function (event) {
+	$("#insertdiceimages").html("")
+	renderdiceimagesfromroll(playersroll(3));
+})
 
+console.log(playersroll(4));
