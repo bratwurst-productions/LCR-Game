@@ -20,3 +20,9 @@ Project Board and Mockup of main page design are linked below:
 
 
 ![LCROnline_Mockup](https://user-images.githubusercontent.com/46508146/56332224-1db49880-6155-11e9-9797-3b8e2d210599.png)
+
+Our application is currently planned to utilize two APIs.
+
+The first API is called Avataaars Generator, and will be used to generate every player's unique avatar for the duration of the game.
+
+The second API will be last.fm, and will be used to find a last.fm internet radio station (turned using the search by tag feature), for the purpose of playing music for each individual player if he or she so chooses. The default option will be no music, but the user will be able to select a genre of music to listen to if he or she would like. 
