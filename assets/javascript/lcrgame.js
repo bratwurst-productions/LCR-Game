@@ -37,8 +37,132 @@ If you're playing with money, try not to lose too much. You can ideally play wit
 // C means pay to the central pot
 
 //
-const gamestatus1 = document.getElementById("gamestatus1");
-var gamestatus2 = document.getElementById("gamestatus2");
+
+/* global moment firebase */
+
+// Initialize Firebase
+// Make sure to match the configuration to the script version number in the HTML
+// (Ex. 3.0 != 3.7.0)
+
+var currentMatches = 0;
+
+var chatHistory = [];
+var chatRowLimit = 10;
+var newUserComment = {
+	commentator:	"",
+	comment:		""
+}
+
+var matched = false;
+var waiting = false;
+var playersWaiting = 0;
+
+
+var config = {
+		apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
+		authDomain: "lcr-game.firebaseapp.com",
+		databaseURL: "https://lcr-game.firebaseio.com",
+		projectId: "lcr-game",
+		storageBucket: "lcr-game.appspot.com",
+		messagingSenderId: "797678842345"
+};
+
+firebase.initializeApp(config);
+
+// Create a variable to reference the database.
+var database = firebase.database();
+
+// connectionsRef references a specific location in our database.
+// All of our connections will be stored in this directory.
+var connectionsRef = database.ref("/connections");
+
+// '.info/connected' is a special location provided by Firebase that is updated
+// every time the client's connection state changes.
+// '.info/connected' is a boolean value, true if the client is connected and false if they are not.
+var connectedRef = database.ref(".info/connected");
+
+// When the client's connection state changes...
+connectedRef.on("value", function(snap) {
+
+  // If they are connected..
+	if (snap.val()) {
+
+		// Add user to the connections list.
+		var con = connectionsRef.push({"waiting": false, "matched":false});
+		// Remove user from the connection list when they disconnect.
+		con.onDisconnect().remove(); // update waiting players or matched players
+	}
+	window.con = con;
+});
+
+// When first loaded or when the connections list changes...
+connectionsRef.on("value", function(snap) {
+
+  // Display the viewer count in the html.
+  // The number of online users is the number of children in the connections list.
+$("#connected-viewers").text(snap.numChildren() + " player(s) connected.");
+$("#current-matches").text(currentMatches + " current matches.");
+$("#waiting").text(playersWaiting + " player(s) waiting for a match");
+});
+
+// --------------------------------------------------------------
+// At the page load and subsequent value changes, get a snapshot of the local data.
+// This function allows you to update your page in real-time when the values within the firebase node chatData changes
+database.ref("/chatData").on("value", function(snapshot) {
+	if (snapshot.child("newComment").exists()) {
+		newUserComment = snapshot.val().newComment;
+		if (chatHistory[chatHistory.length-1] !== snapshot.val().newComment) if (chatHistory.length > chatRowLimit) chatHistory = chatHistory.slice(1); //we only want a max of 16 comments after the push
+	}
+	else newUserComment = {};
+	
+	for (;chatHistory.length < chatRowLimit; chatHistory.push({})) {};
+	chatHistory.push(newUserComment);
+  
+	$("#chat-history").html(chatHistory.map(showHistory));
+
+  // If any errors are experienced, log them to console.
+}, function(errorObject) {
+	console.log("The read failed: " + errorObject.code);
+});
+
+function showHistory(commentObj) {
+	if (typeof commentObj["commentator"] !== "undefined") return `<div class="row"><div class="col-auto mr-auto" style="text-align:left;"><strong>${commentObj["commentator"]}</strong></div><div class="col">${commentObj["comment"]}</div></div>`;
+	else return `<div class="row"><div class="col" style="min-height:1.5em"></div></div>`;
+}
+
+// CLICK EVENT LISTENERS:
+// --------------------------------------------------------------
+// Whenever a user clicks the submit button
+$("#submit-comment").on("click", function(event) {
+	event.preventDefault();
+
+	// Get the input values
+	var commenterName = $("#commenter-name").val().trim();
+	var newUserComment = $("#new-comment").val().trim();
+    
+	if (newUserComment && commenterName) {
+		database.ref("/chatData").set({
+			newComment: {commentator:commenterName,comment:newUserComment},
+		});
+	}
+	$("#new-comment").val("");
+});
+
+// Whenever a user clicks the clear chat button
+$("#clear-comments").on("click", function(event) {
+	event.preventDefault();
+	chatHistory = [];
+	database.ref("/chatData").set({});
+	for (;chatHistory.length < chatRowLimit; chatHistory.push({})) {};
+	
+	// $("#chat-history").html("");
+	
+$("#chat-history").html(chatHistory.map(showHistory));
+});
+
+
+///////////////////////////////////////////////////
+// game stuff below
 
 const game = {
   players: [],
@@ -51,8 +175,7 @@ const game = {
 
 function initialize(gameobj) {
   var enteredPlayers = null;
-  gamestatus1.textContent = "How many players? (For 3 to 20 players)";
-  gamestatus2.textContent = "";
+  $(".game-status").html("Not Matched.<br>Click Start Game to begin game.<br><br><br><br><br><br><br><br>");
 
   document.onkeyup = function(event) {
     var pressedkey = event.key;
@@ -63,23 +186,6 @@ function initialize(gameobj) {
       else if (gamestatus2.textContent.length === 2) {
         numString = gamestatus2.textContent.charAt(1) + pressedkey;
         gamestatus2.textContent = numString;
-      }
-    }
-    if (event.which === 13) {
-      if (
-        parseInt(gamestatus2.textContent) > 2 &&
-        parseInt(gamestatus2.textContent) < 21
-      ) {
-        document.onkeyup = null; // good number of players, stop listening for numbers
-        enteredPlayers = parseInt(gamestatus2.textContent);
-        gamestatus1.textContent = "";
-        gamestatus2.textContent = "";
-        initializePlayers(enteredPlayers);
-        gameobj.initialized = true;
-      } else {
-        gamestatus1.textContent =
-          "please choose a number of players from 3 to 20.";
-        gamestatus2.textContent = "";
       }
     }
   };
@@ -95,11 +201,6 @@ function initialize(gameobj) {
 
 function play(gameobj) {
   var currentPlayer = 0;
-  gamestatus1.textContent = "Player " + currentPlayer;
-  gamestatus2.textContent =
-    "Click the button to roll one die each of your chips.";
-  var r = $('<input type="button" value="click to roll"/>');
-  $("#gamestatus2").append(r);
 
   gameobj.players.forEach(function() {
     gameobj.rollDice(gameobj.players[currentPlayer]);

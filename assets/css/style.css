@@ -1,28 +1,13 @@
+#start-game {
+	width: 100%;
+}
+
 #footer, .jumbotron {
 	text-align: center;
 }
 
-
-
 .btn-danger{
 	margin: 20px;
-}
-
-.col{
-	padding: 5px;
-	margin: 10px;
-	height: 650px;
-	background-color: wheat;
-	float: left;
-	
-}
-
-.col{
-	padding: 5px;
-	margin: 10px;
-	height: 650px;
-	background-color: wheat;
-	float: right;
 }
 
 #chatpanel{
