@@ -273,3 +273,28 @@ $("#rolldicebutton").on("click", function (event) {
 })
 
 console.log(playersroll(4));
+
+function renderdiceimagesfromroll(arrofdicefaces) {
+  for (var i = 0; i < arrofdicefaces.length; i++) {
+    if (arrofdicefaces[i] === "snake_eye") {
+      $("#insertdiceimages").append(
+        '<img id="diceimage" src="assets/Images/snake eyes dice face.png" />'
+      );
+    }
+    if (arrofdicefaces[i] === "R") {
+      $("#insertdiceimages").append(
+        '<img id="diceimage" src="assets/Images/Rdice.png" />'
+      );
+    }
+    if (arrofdicefaces[i] === "L") {
+      $("#insertdiceimages").append(
+        '<img id="diceimage" src="assets/Images/Ldice.png" />'
+      );
+    }
+    if (arrofdicefaces[i] === "C") {
+      $("#insertdiceimages").append(
+        '<img id="diceimage" src="assets/Images/Cdice.png" />'
+      );
+    }
+  }
+}
