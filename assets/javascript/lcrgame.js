@@ -175,7 +175,7 @@ const game = {
 
 function initialize(gameobj) {
   var enteredPlayers = null;
-  $(".game-status").html("Not Matched.<br>Click Start Game to begin game.<br><br><br><br><br><br><br><br>");
+  $(".game-status").html("Not Matched.<br>Click Start Game to begin game.<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>");
 
   document.onkeyup = function(event) {
     var pressedkey = event.key;
