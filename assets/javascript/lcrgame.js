@@ -218,13 +218,13 @@ function renderdiceimagesfromroll(arrofdicefaces) {
     //Do nothing, player loses no chips 
     if (arrofdicefaces[i] === "snake_eye") {
       $(".displaydiceimages").append(
-        '<img id="diceimage" src="assets/Images/snake eyes dice face.png" />'
+        '<img class="diceimage" src="assets/Images/snake eyes dice face.png" />'
       );
     }
     //pass chip to right of player, player loses a chip
     if (arrofdicefaces[i] === "R") {
       $(".displaydiceimages").append(
-        '<img id="diceimage" src="assets/Images/Rdice.png" />'
+        '<img class="diceimage" src="assets/Images/Rdice.png" />'
       );
       usertokens--;
     }
@@ -232,7 +232,7 @@ function renderdiceimagesfromroll(arrofdicefaces) {
     //pass chip to left, player loses a chip
     if (arrofdicefaces[i] === "L") {
       $(".displaydiceimages").append(
-        '<img id="diceimage" src="assets/Images/Ldice.png" />'
+        '<img class="diceimage" src="assets/Images/Ldice.png" />'
       );
       usertokens--;
     }
@@ -240,7 +240,7 @@ function renderdiceimagesfromroll(arrofdicefaces) {
     //pass chip to the center pile, chip is out of circulation now , player loses a chip
     if (arrofdicefaces[i] === "C") {
       $(".displaydiceimages").append(
-        '<img id="diceimage" src="assets/Images/Cdice.png" />'
+        '<img class="diceimage" src="assets/Images/Cdice.png" />'
       );
       
     }
