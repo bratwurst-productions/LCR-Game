@@ -87,13 +87,12 @@ var connectedRef = database.ref(".info/connected");
 
 // When the client's connection state changes...
 connectedRef.on("value", function(snap) {
+  console.log(snap.val())
 
   // If they are connected..
 	if (snap.val()) {
 
 		// Add user to the connections list.
-    var con = connectionsRef.push({"waiting": false, "matched":false});
-    
     var startingstatsforeachuser =connectionsRef.push({
       "usertokens": usertokens
       //insert for values here?? Possibly booleans to determine which users turn 
@@ -168,8 +167,6 @@ $("#clear-comments").on("click", function(event) {
 	database.ref("/chatData").set({});
 	for (;chatHistory.length < chatRowLimit; chatHistory.push({})) {};
 	
-	// $("#chat-history").html("");
-	
 $("#chat-history").html(chatHistory.map(showHistory));
 });
 
@@ -227,6 +224,8 @@ function renderdiceimagesfromroll(arrofdicefaces) {
         '<img id="diceimage" src="assets/Images/Rdice.png" />'
       );
       usertokens--;
+
+     // connections.ref().update({ usertokens: usertokens });
     }
 
     //pass chip to left, player loses a chip
@@ -242,7 +241,15 @@ function renderdiceimagesfromroll(arrofdicefaces) {
       $(".displaydiceimages").append(
         '<img id="diceimage" src="assets/Images/Cdice.png" />'
       );
+      usertokens--;
       
     }
+    //console.log(usertokens) //this works, usertokens are counting down in console
   }
+   //this works, usertokens are counting down in console
+  $("#chiptotal").text(usertokens)
+ // connectedRef.update({ 'usertokens': usertokens });
+ // database.ref().update({'usertokens': usertokens})
+ connectionsRef.update({"usertokes": usertokens});
+
 }
