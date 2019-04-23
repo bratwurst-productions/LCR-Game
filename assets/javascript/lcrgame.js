@@ -49,8 +49,8 @@ var currentMatches = 0;
 var chatHistory = [];
 var chatRowLimit = 10;
 var newUserComment = {
-	commentator:	"",
-	comment:		""
+  commentator: "",
+  comment: ""
 }
 
 
@@ -63,12 +63,12 @@ var playersWaiting = 0;
 
 
 var config = {
-		apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
-		authDomain: "lcr-game.firebaseapp.com",
-		databaseURL: "https://lcr-game.firebaseio.com",
-		projectId: "lcr-game",
-		storageBucket: "lcr-game.appspot.com",
-		messagingSenderId: "797678842345"
+  apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
+  authDomain: "lcr-game.firebaseapp.com",
+  databaseURL: "https://lcr-game.firebaseio.com",
+  projectId: "lcr-game",
+  storageBucket: "lcr-game.appspot.com",
+  messagingSenderId: "797678842345"
 };
 
 firebase.initializeApp(config);
@@ -86,91 +86,91 @@ var connectionsRef = database.ref("/connections");
 var connectedRef = database.ref(".info/connected");
 
 // When the client's connection state changes...
-connectedRef.on("value", function(snap) {
+connectedRef.on("value", function (snap) {
+  console.log(snap.val())
 
   // If they are connected..
-	if (snap.val()) {
+  if (snap.val()) {
 
-		// Add user to the connections list.
-    var con = connectionsRef.push({"waiting": false, "matched":false});
-    
-    var startingstatsforeachuser =connectionsRef.push({
+    // Add user to the connections list.
+    var con = connectionsRef.push({
+      "waiting": false,
+      "matched": false,
       "usertokens": usertokens
-      //insert for values here?? Possibly booleans to determine which users turn 
-      //it is
     });
-		// Remove user from the connection list when they disconnect.
-		con.onDisconnect().remove(); // update waiting players or matched players
-	}
-	window.con = con;
+
+
+    // Remove user from the connection list when they disconnect.
+    con.onDisconnect().remove(); // update waiting players or matched players
+  }
+  window.con = con;
 });
 
 // When first loaded or when the connections list changes...
-connectionsRef.on("value", function(snap) {
+connectionsRef.on("value", function (snap) {
+  console.log(this)
 
-
-$("#chiptotal")
   // Display the viewer count in the html.
-  $("#chiptotal").text(usertokens)
   // The number of online users is the number of children in the connections list.
-$("#connected-viewers").text(snap.numChildren() + " player(s) connected.");
-$("#current-matches").text(currentMatches + " current matches.");
-$("#waiting").text(playersWaiting + " player(s) waiting for a match");
+  $("#connected-viewers").text(snap.numChildren() + " player(s) connected.");
+  $("#current-matches").text(currentMatches + " current matches.");
+  $("#waiting").text(playersWaiting + " player(s) waiting for a match");
 });
 
 // --------------------------------------------------------------
 // At the page load and subsequent value changes, get a snapshot of the local data.
 // This function allows you to update your page in real-time when the values within the firebase node chatData changes
-database.ref("/chatData").on("value", function(snapshot) {
-	if (snapshot.child("newComment").exists()) {
-		newUserComment = snapshot.val().newComment;
-		if (chatHistory[chatHistory.length-1] !== snapshot.val().newComment) if (chatHistory.length > chatRowLimit) chatHistory = chatHistory.slice(1); //we only want a max of 16 comments after the push
-	}
-	else newUserComment = {};
-	
-	for (;chatHistory.length < chatRowLimit; chatHistory.push({})) {};
-	chatHistory.push(newUserComment);
-  
-	$("#chat-history").html(chatHistory.map(showHistory));
+database.ref("/chatData").on("value", function (snapshot) {
+  if (snapshot.child("newComment").exists()) {
+    newUserComment = snapshot.val().newComment;
+    if (chatHistory[chatHistory.length - 1] !== snapshot.val().newComment)
+      if (chatHistory.length > chatRowLimit) chatHistory = chatHistory.slice(1); //we only want a max of 16 comments after the push
+  } else newUserComment = {};
+
+  for (; chatHistory.length < chatRowLimit; chatHistory.push({})) {};
+  chatHistory.push(newUserComment);
+
+  $("#chat-history").html(chatHistory.map(showHistory));
 
   // If any errors are experienced, log them to console.
-}, function(errorObject) {
-	console.log("The read failed: " + errorObject.code);
+}, function (errorObject) {
+  console.log("The read failed: " + errorObject.code);
 });
 
 function showHistory(commentObj) {
-	if (typeof commentObj["commentator"] !== "undefined") return `<div class="row"><div class="col-auto mr-auto" style="text-align:left;"><strong>${commentObj["commentator"]}</strong></div><div class="col">${commentObj["comment"]}</div></div>`;
-	else return `<div class="row"><div class="col" style="min-height:1.5em"></div></div>`;
+  if (typeof commentObj["commentator"] !== "undefined") return `<div class="row"><div class="col-auto mr-auto" style="text-align:left;"><strong>${commentObj["commentator"]}</strong></div><div class="col">${commentObj["comment"]}</div></div>`;
+  else return `<div class="row"><div class="col" style="min-height:1.5em"></div></div>`;
 }
 
 // CLICK EVENT LISTENERS:
 // --------------------------------------------------------------
 // Whenever a user clicks the submit button
-$("#submit-comment").on("click", function(event) {
-	event.preventDefault();
+$("#submit-comment").on("click", function (event) {
+  event.preventDefault();
 
-	// Get the input values
-	var commenterName = $("#commenter-name").val().trim();
-	var newUserComment = $("#new-comment").val().trim();
-    
-	if (newUserComment && commenterName) {
-		database.ref("/chatData").set({
-			newComment: {commentator:commenterName,comment:newUserComment},
-		});
-	}
-	$("#new-comment").val("");
+  // Get the input values
+  var commenterName = $("#commenter-name").val().trim();
+  var newUserComment = $("#new-comment").val().trim();
+
+  if (newUserComment && commenterName) {
+    database.ref("/chatData").set({
+      newComment: {
+        commentator: commenterName,
+        comment: newUserComment
+      },
+    });
+  }
+  $("#new-comment").val("");
 });
 
 // Whenever a user clicks the clear chat button
-$("#clear-comments").on("click", function(event) {
-	event.preventDefault();
-	chatHistory = [];
-	database.ref("/chatData").set({});
-	for (;chatHistory.length < chatRowLimit; chatHistory.push({})) {};
-	
-	// $("#chat-history").html("");
-	
-$("#chat-history").html(chatHistory.map(showHistory));
+$("#clear-comments").on("click", function (event) {
+  event.preventDefault();
+  chatHistory = [];
+  database.ref("/chatData").set({});
+  for (; chatHistory.length < chatRowLimit; chatHistory.push({})) {};
+
+  $("#chat-history").html(chatHistory.map(showHistory));
 });
 
 
@@ -206,11 +206,9 @@ function playersroll(numberofplayerstokens) {
 
 
 $("#rolldice").on("click", function (event) {
-	$(".displaydiceimages").html("")
-	renderdiceimagesfromroll(playersroll(3));
+  $(".displaydiceimages").html("")
+  renderdiceimagesfromroll(playersroll(3));
 })
-
-console.log(playersroll(4));
 
 function renderdiceimagesfromroll(arrofdicefaces) {
   for (var i = 0; i < arrofdicefaces.length; i++) {
@@ -227,6 +225,8 @@ function renderdiceimagesfromroll(arrofdicefaces) {
         '<img class="diceimage" src="assets/Images/Rdice.png" />'
       );
       usertokens--;
+
+      // connections.ref().update({ usertokens: usertokens });
     }
 
     //pass chip to left, player loses a chip
@@ -242,7 +242,19 @@ function renderdiceimagesfromroll(arrofdicefaces) {
       $(".displaydiceimages").append(
         '<img class="diceimage" src="assets/Images/Cdice.png" />'
       );
-      
+      usertokens--;
+
     }
+    //console.log(usertokens) //this works, usertokens are counting down in console
   }
+  //this works, usertokens are counting down in console
+  $("#chiptotal").text(usertokens)
+  // connectedRef.update({ 'usertokens': usertokens });
+  // database.ref().update({'usertokens': usertokens})
+
+
+  connectionsRef.update({
+    "usertokes": usertokens
+  });
+
 }
