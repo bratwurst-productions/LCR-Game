@@ -212,7 +212,7 @@ $("#rolldice").on("click", function (event) {
 
 function renderdiceimagesfromroll(arrofdicefaces) {
   for (var i = 0; i < arrofdicefaces.length; i++) {
-
+var valChanged = false;
     //Do nothing, player loses no chips 
     if (arrofdicefaces[i] === "snake_eye") {
       $(".displaydiceimages").append(
@@ -225,6 +225,7 @@ function renderdiceimagesfromroll(arrofdicefaces) {
         '<img class="diceimage" src="assets/Images/Rdice.png" />'
       );
       usertokens--;
+	  valChanged = true;
 
       // connections.ref().update({ usertokens: usertokens });
     }
@@ -235,6 +236,7 @@ function renderdiceimagesfromroll(arrofdicefaces) {
         '<img class="diceimage" src="assets/Images/Ldice.png" />'
       );
       usertokens--;
+	  valChanged = true;
     }
 
     //pass chip to the center pile, chip is out of circulation now , player loses a chip
@@ -243,19 +245,9 @@ function renderdiceimagesfromroll(arrofdicefaces) {
         '<img class="diceimage" src="assets/Images/Cdice.png" />'
       );
       usertokens--;
-
+	valChanged = true;
     }
-    //console.log(usertokens) //this works, usertokens are counting down in console
   }
-  //this works, usertokens are counting down in console
-  $("#chiptotal").text(usertokens)
-  // connectedRef.update({ 'usertokens': usertokens });
-  // database.ref().update({'usertokens': usertokens})
-
-
-  // connectionsRef.update({
-  //   "usertokes": usertokens
-  // });  THIS CODE ADDS A NEW entry at bottom of list, kinda funny
-  
-
+  $("#chiptotal").text(usertokens) // this should be changed to use the value from firebase
+  if (valChanged) con.update({ usertokens: usertokens });
 }
