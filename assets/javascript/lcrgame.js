@@ -53,6 +53,10 @@ var newUserComment = {
 	comment:		""
 }
 
+
+//usertokens should start at 3 for each player
+let usertokens = 3;
+
 var matched = false;
 var waiting = false;
 var playersWaiting = 0;
@@ -88,7 +92,13 @@ connectedRef.on("value", function(snap) {
 	if (snap.val()) {
 
 		// Add user to the connections list.
-		var con = connectionsRef.push({"waiting": false, "matched":false});
+    var con = connectionsRef.push({"waiting": false, "matched":false});
+    
+    var startingstatsforeachuser =connectionsRef.push({
+      "usertokens": usertokens
+      //insert for values here?? Possibly booleans to determine which users turn 
+      //it is
+    });
 		// Remove user from the connection list when they disconnect.
 		con.onDisconnect().remove(); // update waiting players or matched players
 	}
@@ -98,7 +108,10 @@ connectedRef.on("value", function(snap) {
 // When first loaded or when the connections list changes...
 connectionsRef.on("value", function(snap) {
 
+
+$("#chiptotal")
   // Display the viewer count in the html.
+  $("#chiptotal").text(usertokens)
   // The number of online users is the number of children in the connections list.
 $("#connected-viewers").text(snap.numChildren() + " player(s) connected.");
 $("#current-matches").text(currentMatches + " current matches.");
@@ -190,30 +203,6 @@ function playersroll(numberofplayerstokens) {
   return playerrollresults;
 }
 
-function renderdiceimagesfromroll(arrofdicefaces) {
-  for (var i = 0; i < arrofdicefaces.length; i++) {
-    if (arrofdicefaces[i] === "snake_eye") {
-      $("#insertdiceimages").append(
-        '<img id="diceimage" src="assets/Images/snake eyes dice face.png" />'
-      );
-    }
-    if (arrofdicefaces[i] === "R") {
-      $("#insertdiceimages").append(
-        '<img id="diceimage" src="assets/Images/Rdice.png" />'
-      );
-    }
-    if (arrofdicefaces[i] === "L") {
-      $("#insertdiceimages").append(
-        '<img id="diceimage" src="assets/Images/Ldice.png" />'
-      );
-    }
-    if (arrofdicefaces[i] === "C") {
-      $("#insertdiceimages").append(
-        '<img id="diceimage" src="assets/Images/Cdice.png" />'
-      );
-    }
-  }
-}
 
 
 $("#rolldice").on("click", function (event) {
@@ -225,25 +214,35 @@ console.log(playersroll(4));
 
 function renderdiceimagesfromroll(arrofdicefaces) {
   for (var i = 0; i < arrofdicefaces.length; i++) {
+
+    //Do nothing, player loses no chips 
     if (arrofdicefaces[i] === "snake_eye") {
       $(".displaydiceimages").append(
         '<img id="diceimage" src="assets/Images/snake eyes dice face.png" />'
       );
     }
+    //pass chip to right of player, player loses a chip
     if (arrofdicefaces[i] === "R") {
       $(".displaydiceimages").append(
         '<img id="diceimage" src="assets/Images/Rdice.png" />'
       );
+      usertokens--;
     }
+
+    //pass chip to left, player loses a chip
     if (arrofdicefaces[i] === "L") {
       $(".displaydiceimages").append(
         '<img id="diceimage" src="assets/Images/Ldice.png" />'
       );
+      usertokens--;
     }
+
+    //pass chip to the center pile, chip is out of circulation now , player loses a chip
     if (arrofdicefaces[i] === "C") {
       $(".displaydiceimages").append(
         '<img id="diceimage" src="assets/Images/Cdice.png" />'
       );
+      
     }
   }
 }
