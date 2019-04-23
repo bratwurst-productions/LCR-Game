@@ -31,7 +31,8 @@ p#footer {
 
 
 
-#diceimage{
+.diceimage{
 	height:20%;
 	width: 20%;
+	padding: 10px;
 }
