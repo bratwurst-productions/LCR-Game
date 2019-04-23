@@ -253,8 +253,9 @@ function renderdiceimagesfromroll(arrofdicefaces) {
   // database.ref().update({'usertokens': usertokens})
 
 
-  connectionsRef.update({
-    "usertokes": usertokens
-  });
+  // connectionsRef.update({
+  //   "usertokes": usertokens
+  // });  THIS CODE ADDS A NEW entry at bottom of list, kinda funny
+  
 
 }
