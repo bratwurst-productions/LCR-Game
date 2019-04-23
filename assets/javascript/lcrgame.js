@@ -164,57 +164,6 @@ $("#chat-history").html(chatHistory.map(showHistory));
 ///////////////////////////////////////////////////
 // game stuff below
 
-const game = {
-  players: [],
-  over: false,
-  initialized: false,
-  rollDice: function(player) {
-    console.log(player.chips);
-  }
-};
-
-function initialize(gameobj) {
-  var enteredPlayers = null;
-  $(".game-status").html("Not Matched.<br>Click Start Game to begin game.<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>");
-
-  document.onkeyup = function(event) {
-    var pressedkey = event.key;
-    var numString = "";
-    if ("1234567890".includes(pressedkey)) {
-      if (gamestatus2.textContent.length < 2)
-        gamestatus2.textContent += pressedkey;
-      else if (gamestatus2.textContent.length === 2) {
-        numString = gamestatus2.textContent.charAt(1) + pressedkey;
-        gamestatus2.textContent = numString;
-      }
-    }
-  };
-
-  function initializePlayers(num) {
-    for (var x = 0; x < num; x++) {
-      var newPlayer = {};
-      newPlayer.chips = 3;
-      gameobj.players.push(newPlayer);
-    }
-  }
-}
-
-function play(gameobj) {
-  var currentPlayer = 0;
-
-  gameobj.players.forEach(function() {
-    gameobj.rollDice(gameobj.players[currentPlayer]);
-  });
-}
-
-initialize(game);
-
-var newInterv = setInterval(function() {
-  if (game.initialized) {
-    clearInterval(newInterv);
-    play(game);
-  }
-}, 2000);
 
 //This function rolls a single dice and returns the value of that dice
 function rollonedice() {
@@ -267,8 +216,8 @@ function renderdiceimagesfromroll(arrofdicefaces) {
 }
 
 
-$("#rolldicebutton").on("click", function (event) {
-	$("#insertdiceimages").html("")
+$("#rolldice").on("click", function (event) {
+	$(".displaydiceimages").html("")
 	renderdiceimagesfromroll(playersroll(3));
 })
 
@@ -277,22 +226,22 @@ console.log(playersroll(4));
 function renderdiceimagesfromroll(arrofdicefaces) {
   for (var i = 0; i < arrofdicefaces.length; i++) {
     if (arrofdicefaces[i] === "snake_eye") {
-      $("#insertdiceimages").append(
+      $(".displaydiceimages").append(
         '<img id="diceimage" src="assets/Images/snake eyes dice face.png" />'
       );
     }
     if (arrofdicefaces[i] === "R") {
-      $("#insertdiceimages").append(
+      $(".displaydiceimages").append(
         '<img id="diceimage" src="assets/Images/Rdice.png" />'
       );
     }
     if (arrofdicefaces[i] === "L") {
-      $("#insertdiceimages").append(
+      $(".displaydiceimages").append(
         '<img id="diceimage" src="assets/Images/Ldice.png" />'
       );
     }
     if (arrofdicefaces[i] === "C") {
-      $("#insertdiceimages").append(
+      $(".displaydiceimages").append(
         '<img id="diceimage" src="assets/Images/Cdice.png" />'
       );
     }
