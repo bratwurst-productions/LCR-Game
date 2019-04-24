@@ -74,10 +74,8 @@ var connectionsUpdateFunc = function(snap) {
 	// Display the viewer count in the html.
 	// The number of online users is the number of children in the connections list.
 	$("#connected-viewers").text(snap.numChildren() + " player(s) connected.");
-	// console.log(Object.keys(snap.val()));
 	window.playerArray = Object.keys(snap.val());
 	if (!myPlayerID) myPlayerID = playerArray[playerArray.length-1]
-	// console.log("myPlayerID: " + myPlayerID);
 	window.connections = snap.val();
 	$("#current-matches").text(currentMatches + " players currently joined.");
 	//$("#waiting").text(playersWaiting + " player(s) waiting for a match");
