@@ -25,6 +25,20 @@ var waiting = false;
 var playersWaiting = 0;
 var myPlayerID = null;
 
+
+switch (Math.floor(Math.random() * 3)) {
+	case 0:
+		$("body").css("background",`darkslategray url(./assets/background_images/Oriental_Lizard-reduced.jpg) no-repeat top center/cover fixed`);
+		break;
+	case 1:
+		$("body").css("background",`darkslategray url("./assets/background_images/sugarloaf_sunrise_reduced_cropped.jpg") no-repeat top center/cover fixed`);
+		break;
+	case 2:
+		$("body").css("background",`darkslategray url("./assets/background_images/Gulls_on_Morro_Strand_State_Beach_reduced_cropped.jpg") no-repeat top center/cover fixed`);
+		break;
+	// no default case needed because we have a fallback in style.css for background color
+}
+
 var config = {
   apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
   authDomain: "lcr-game.firebaseapp.com",
