@@ -1,9 +1,5 @@
 body {
-	background-image: url("../background_images/Oriental_Lizard-reduced.jpg"); 
-	/* background-image: url("../background_images/Sugarloaf_Sunrise_2-reduced.jpg"); */
-    background-size: cover;
-	background-repeat: no-repeat;
-	/* background-position:center;	*/
+	background-color: darkslategray;
 }
 
 .row {

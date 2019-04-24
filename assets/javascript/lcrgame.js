@@ -25,6 +25,10 @@ var waiting = false;
 var playersWaiting = 0;
 var myPlayerID = null;
 
+
+if (Math.floor(Math.random() * 2)) $("body").css("background",`darkslategray url(./assets/background_images/Oriental_Lizard-reduced.jpg) no-repeat top/cover`);
+else $("body").css("background",`darkslategray url("./assets/background_images/sugarloaf_sunrise_reduced_cropped.jpg") no-repeat top/cover`);
+
 var config = {
   apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
   authDomain: "lcr-game.firebaseapp.com",
