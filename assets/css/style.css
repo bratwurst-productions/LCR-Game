@@ -1,8 +1,13 @@
 body {
-	/* background-image: url("../background_images/SHB-Red-Dust-reduced.jpg"); */
 	background-image: url("../background_images/Oriental_Lizard-reduced.jpg"); 
 	/* background-image: url("../background_images/Sugarloaf_Sunrise_2-reduced.jpg"); */
     background-size: cover;
+	background-repeat: no-repeat;
+	/* background-position:center;	*/
+}
+
+.row {
+	margin-right: 0;
 }
 
 #start-game {
@@ -30,12 +35,12 @@ body {
 footer {
 	width: 100%;
 	height: 5rem;
-	background-color: transparent;	
-	vertical-align: middle;
 }
 
 p#footer {
 	margin: 2rem 0;
+	color: orangered;
+    font-weight: 500;
 }
 
 .diceimage{
