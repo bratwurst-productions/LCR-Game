@@ -18,14 +18,13 @@ var newUserComment = {
   comment: ""
 }
 
-let usertokens = 3; //usertokens should start at 3 for each player
+let userTokens = 3; //userTokens should start at 3 for each player
 var centerTokens = 0;
 
 var matched = false;
 var waiting = false;
 var playersWaiting = 0;
 var myPlayerID = null;
-
 
 var config = {
   apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
@@ -60,13 +59,12 @@ connectedRef.on("value", function (snap) {
 		var con = connectionsRef.push({
 			"waiting": false,
 			"matched": false,
-			"usertokens": usertokens
+			"userTokens": userTokens
 		});
 	
 		// Remove user from the connection list when they disconnect.
 		con.onDisconnect().remove(); // update waiting players or matched players
 	}
-
 	window.con = con;
 });
 
@@ -80,7 +78,7 @@ var connectionsUpdateFunc = function(snap) {
 	$("#current-matches").text(currentMatches + " players currently joined.");
 	//$("#waiting").text(playersWaiting + " player(s) waiting for a match");
 	$("#center-chips").text(centerTokens);
-	$("#chiptotal").text(usertokens);
+	$("#chip-total").text(userTokens);
 	playerArray.indexOf(myPlayerID);
 	$("#player-number").text(playerArray.indexOf(myPlayerID)+1);
 }
@@ -90,13 +88,15 @@ connectionsRef.on("value", connectionsUpdateFunc);
 var childUpdateFunc = function(snap) {
 	if (myPlayerID) {
 		if (myPlayerID === snap.key) {
-			usertokens = snap.val().usertokens;
-			$("#chiptotal").text(usertokens);
+			userTokens = snap.val().userTokens;
+			$("#chiptotal").text(userTokens);
 		}
 	}
 }
 
 connectionsRef.on("child_changed", childUpdateFunc);
+
+$("#game-status").html('Click "Start or Join Game" to begin!<br><br><br><br><br><br><br><br><br><br><br><br>');
 
 // --------------------------------------------------------------
 // At the page load and subsequent value changes, get a snapshot of the local data.
@@ -162,57 +162,58 @@ $("#clear-comments").on("click", function (event) {
 ////////////////////////////////////
 
 //This function rolls a single dice and returns the value of that dice
-function rollonedice() {
-	let possibledicevalues = ["L","R","C","snake_eye","snake_eye","snake_eye"];
-	let rand = possibledicevalues[Math.floor(Math.random() * possibledicevalues.length)];
+function rollDie() {
+	let possibleDieValues = ["L","R","C","snake_eye","snake_eye","snake_eye"];
+	let rand = possibleDieValues[Math.floor(Math.random() * possibleDieValues.length)];
 	return rand;
 }
 
 //this function takes care of the players dice roll depending on the amount of tokens they have
 //if the player has 4 tokens then the function will return an array of 4 dice/values
-function playersroll(numberofplayerstokens) {
-	let playerrollresults = [];
+function playerRoll(dice) {
+	let rollResults = [];
 	
-	for (var i = 0; i < numberofplayerstokens; i++) {
-		playerrollresults.push(rollonedice());
+	for (var i = 0; i < dice; i++) {
+		rollResults.push(rollDie());
 	}
-	return playerrollresults;
+	return rollResults;
 }
 
-$("#rolldice").on("click", function (event) {
-	$(".displaydiceimages").html("");
-	renderdiceimagesfromroll(playersroll(3));
+$("#roll-dice").on("click", function (event) {
+	event.preventDefault();
+	$("#dice-images").html("");
+	renderDice(playerRoll(3)); //CHANGE THIS LINE TO BE NUMBER OF CHIPS
 });
 
-function renderdiceimagesfromroll(arrofdicefaces) {
+function renderDice(rollResultsArray) {
 	
 	var valChanged = false;
 	var passLeft = false;
 	var passRight = false;
 	
-	for (var i = 0; i < arrofdicefaces.length; i++) {
+	for (var i = 0; i < rollResultsArray.length; i++) {
 		//Do nothing, player loses no chips 
-		if (arrofdicefaces[i] === "snake_eye") {
-			$(".displaydiceimages").append('<img class="diceimage" src="assets/Images/snake eyes dice face.png" />');
+		if (rollResultsArray[i] === "snake_eye") {
+			$("#dice-images").append('<img class="diceimage" src="assets/Images/snake eyes dice face.png" />');
 		}
 		//pass chip to right of player, player loses a chip
-		if (arrofdicefaces[i] === "R") {
-			$(".displaydiceimages").append('<img class="diceimage" src="assets/Images/Rdice.png" />');
-			usertokens--;
+		if (rollResultsArray[i] === "R") {
+			$("#dice-images").append('<img class="diceimage" src="assets/Images/Rdice.png" />');
+			userTokens--;
 			valChanged = true;
 			passRight = true;
 		}
 		//pass chip to left, player loses a chip
-		if (arrofdicefaces[i] === "L") {
-			$(".displaydiceimages").append('<img class="diceimage" src="assets/Images/Ldice.png" />');
-			usertokens--;
+		if (rollResultsArray[i] === "L") {
+			$("#dice-images").append('<img class="diceimage" src="assets/Images/Ldice.png" />');
+			userTokens--;
 			valChanged = true;
 			passLeft = true;
 		}
 		//pass chip to the center pile, chip is out of circulation now , player loses a chip
-		if (arrofdicefaces[i] === "C") {
-			$(".displaydiceimages").append('<img class="diceimage" src="assets/Images/Cdice.png" />');
-			usertokens--;
+		if (rollResultsArray[i] === "C") {
+			$("#dice-images").append('<img class="diceimage" src="assets/Images/Cdice.png" />');
+			userTokens--;
 			valChanged = true;
 		}
 	}
@@ -225,15 +226,15 @@ function renderdiceimagesfromroll(arrofdicefaces) {
 	if (playerArray.indexOf(myPlayerID) === playerArray.length-1) rightPlayer = 0;
 	else rightPlayer = playerArray.indexOf(myPlayerID)+1;
 
-	if (valChanged) con.update({ usertokens: usertokens });
+	if (valChanged) con.update({ userTokens: userTokens });
 	
 	if (passLeft) {
-		connections[playerArray[leftPlayer]].usertokens++;
-		connectionsRef.child(playerArray[leftPlayer]).update({ usertokens: connections[playerArray[leftPlayer]].usertokens });
+		connections[playerArray[leftPlayer]].userTokens++;
+		connectionsRef.child(playerArray[leftPlayer]).update({ userTokens: connections[playerArray[leftPlayer]].userTokens });
 	}
 	
 	if (passRight) {
-		connections[playerArray[rightPlayer]].usertokens++;
-		connectionsRef.child(playerArray[rightPlayer]).update({ usertokens: connections[playerArray[rightPlayer]].usertokens });
+		connections[playerArray[rightPlayer]].userTokens++;
+		connectionsRef.child(playerArray[rightPlayer]).update({ userTokens: connections[playerArray[rightPlayer]].userTokens });
 	}
 }
