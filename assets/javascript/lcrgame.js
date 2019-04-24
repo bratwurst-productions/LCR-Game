@@ -10,7 +10,6 @@ https://plentifun.com/rules-to-play-left-right-center-lcr-dice-game
 // (Ex. 3.0 != 3.7.0)
 
 var currentMatches = 0;
-
 var chatHistory = [];
 var chatRowLimit = 10;
 var newUserComment = {
@@ -18,13 +17,27 @@ var newUserComment = {
   comment: ""
 }
 
-let userTokens = 3; //userTokens should start at 3 for each player
+let userTokens = 3; //all players begin game with three chips each
 var centerTokens = 0;
 
 var matched = false;
 var waiting = false;
 var playersWaiting = 0;
 var myPlayerID = null;
+
+
+switch (Math.floor(Math.random() * 3)) {
+	case 0:
+		$("body").css("background",`darkslategray url(./assets/background_images/Oriental_Lizard-reduced.jpg) no-repeat top center/cover fixed`);
+		break;
+	case 1:
+		$("body").css("background",`darkslategray url("./assets/background_images/sugarloaf_sunrise_reduced_cropped.jpg") no-repeat top center/cover fixed`);
+		break;
+	case 2:
+		$("body").css("background",`darkslategray url("./assets/background_images/Gulls_on_Morro_Strand_State_Beach_reduced_cropped.jpg") no-repeat top center/cover fixed`);
+		break;
+	// no default case needed because we have a fallback in style.css for background color
+}
 
 var config = {
   apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
@@ -182,7 +195,7 @@ function playerRoll(dice) {
 $("#roll-dice").on("click", function (event) {
 	event.preventDefault();
 	$("#dice-images").html("");
-	renderDice(playerRoll(3)); //CHANGE THIS LINE TO BE NUMBER OF CHIPS
+	renderDice(playerRoll(userTokens)); 
 });
 
 function renderDice(rollResultsArray) {

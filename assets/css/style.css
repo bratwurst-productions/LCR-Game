@@ -1,3 +1,11 @@
+body {
+	background-color: darkslategray;
+}
+
+.row {
+	margin-right: 0;
+}
+
 #start-game {
 	width: 100%;
 }
@@ -8,6 +16,8 @@
 
 .jumbotron {
 	padding: 0 0 1rem 0;
+	background-color: transparent;
+	color: white;
 }
 
 .btn-danger{
@@ -21,18 +31,22 @@
 footer {
 	width: 100%;
 	height: 5rem;
-	background-color: transparent;	
-	vertical-align: middle;
 }
 
 p#footer {
 	margin: 2rem 0;
+	color: orangered;
+    font-weight: 500;
 }
-
-
 
 .diceimage{
 	height:20%;
 	width: 20%;
 	padding: 10px;
+}
+
+.card-header {
+	color: white;
+	background-color: transparent;
+	border: 0;
 }
