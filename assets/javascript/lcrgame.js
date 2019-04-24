@@ -10,7 +10,6 @@ https://plentifun.com/rules-to-play-left-right-center-lcr-dice-game
 // (Ex. 3.0 != 3.7.0)
 
 var currentMatches = 0;
-
 var chatHistory = [];
 var chatRowLimit = 10;
 var newUserComment = {
@@ -18,7 +17,7 @@ var newUserComment = {
   comment: ""
 }
 
-let userTokens = 3; //userTokens should start at 3 for each player
+let userTokens = 3; //all players begin game with three chips each
 var centerTokens = 0;
 
 var matched = false;
@@ -182,7 +181,7 @@ function playerRoll(dice) {
 $("#roll-dice").on("click", function (event) {
 	event.preventDefault();
 	$("#dice-images").html("");
-	renderDice(playerRoll(3)); //CHANGE THIS LINE TO BE NUMBER OF CHIPS
+	renderDice(playerRoll(userTokens)); 
 });
 
 function renderDice(rollResultsArray) {
