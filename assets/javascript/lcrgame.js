@@ -25,12 +25,8 @@ var waiting = false;
 var playersWaiting = 0;
 var myPlayerID = null;
 
-/*
-if (Math.floor(Math.random() * 2)) $("body").css("background",`darkslategray url(./assets/background_images/Oriental_Lizard-reduced.jpg) no-repeat top center/cover fixed`);
-else $("body").css("background",`darkslategray url("./assets/background_images/sugarloaf_sunrise_reduced_cropped.jpg") no-repeat top center/cover fixed`);
-*/
 
-switch(Math.floor(Math.random() * 3) {
+switch (Math.floor(Math.random() * 3)) {
 	case 0:
 		$("body").css("background",`darkslategray url(./assets/background_images/Oriental_Lizard-reduced.jpg) no-repeat top center/cover fixed`);
 		break;
