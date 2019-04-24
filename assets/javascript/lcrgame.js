@@ -56,10 +56,12 @@ var newUserComment = {
 
 //usertokens should start at 3 for each player
 let usertokens = 3;
+var centerTokens = 0;
 
 var matched = false;
 var waiting = false;
 var playersWaiting = 0;
+var myPlayerID = null;
 
 
 var config = {
@@ -87,11 +89,9 @@ var connectedRef = database.ref(".info/connected");
 
 // When the client's connection state changes...
 connectedRef.on("value", function (snap) {
-  console.log(snap.val())
 
   // If they are connected..
   if (snap.val()) {
-
     // Add user to the connections list.
     var con = connectionsRef.push({
       "waiting": false,
@@ -106,19 +106,39 @@ connectedRef.on("value", function (snap) {
   window.con = con;
 });
 
-// When first loaded or when the connections list changes...
-connectionsRef.on("value", function (snap) {
-  console.log(this)
-
-  // Display the viewer count in the html.
+var connectionsUpdateFunc = function(snap) {
+	  // Display the viewer count in the html.
   // The number of online users is the number of children in the connections list.
-  $("#connected-viewers").text(snap.numChildren() + " player(s) connected.");
-  $("#current-matches").text(currentMatches + " current matches.");
-  $("#waiting").text(playersWaiting + " player(s) waiting for a match");
-});
+	$("#connected-viewers").text(snap.numChildren() + " player(s) connected.");
+	// console.log(Object.keys(snap.val()));
+	window.playerArray = Object.keys(snap.val());
+	if (!myPlayerID) myPlayerID = playerArray[playerArray.length-1]
+	// console.log("myPlayerID: " + myPlayerID); 
+	window.connections = snap.val();
+	$("#current-matches").text(currentMatches + " players currently joined.");
+	//$("#waiting").text(playersWaiting + " player(s) waiting for a match");
+	$("#center-chips").text(centerTokens);
+	$("#chiptotal").text(usertokens);
+	playerArray.indexOf(myPlayerID)
+	$("#player-number").text(playerArray.indexOf(myPlayerID)+1);
+	
+}
+// When first loaded or when the connections list changes...
+connectionsRef.on("value", connectionsUpdateFunc);
+
+var childUpdateFunc = function(snap) {
+	if (myPlayerID) {
+		if (myPlayerID === snap.key) {
+			usertokens = snap.val().usertokens;
+			$("#chiptotal").text(usertokens);
+		}
+	}
+}
+
+connectionsRef.on("child_changed", childUpdateFunc);
 
 // --------------------------------------------------------------
-// At the page load and subsequent value changes, get a snapshot of the local data.
+// At the page load and subsequent value changes, get a snapshot of the local data.
 // This function allows you to update your page in real-time when the values within the firebase node chatData changes
 database.ref("/chatData").on("value", function (snapshot) {
   if (snapshot.child("newComment").exists()) {
@@ -211,6 +231,11 @@ $("#rolldice").on("click", function (event) {
 })
 
 function renderdiceimagesfromroll(arrofdicefaces) {
+
+var valChanged = false;
+var passLeft = false;
+var passRight = false;
+
   for (var i = 0; i < arrofdicefaces.length; i++) {
 
     //Do nothing, player loses no chips 
@@ -225,6 +250,8 @@ function renderdiceimagesfromroll(arrofdicefaces) {
         '<img class="diceimage" src="assets/Images/Rdice.png" />'
       );
       usertokens--;
+	  valChanged = true;
+	  passRight = true;
 
       // connections.ref().update({ usertokens: usertokens });
     }
@@ -235,6 +262,8 @@ function renderdiceimagesfromroll(arrofdicefaces) {
         '<img class="diceimage" src="assets/Images/Ldice.png" />'
       );
       usertokens--;
+	  valChanged = true;
+	  passLeft = true;
     }
 
     //pass chip to the center pile, chip is out of circulation now , player loses a chip
@@ -243,19 +272,41 @@ function renderdiceimagesfromroll(arrofdicefaces) {
         '<img class="diceimage" src="assets/Images/Cdice.png" />'
       );
       usertokens--;
-
-    }
-    //console.log(usertokens) //this works, usertokens are counting down in console
-  }
-  //this works, usertokens are counting down in console
-  $("#chiptotal").text(usertokens)
-  // connectedRef.update({ 'usertokens': usertokens });
-  // database.ref().update({'usertokens': usertokens})
-
-
-  // connectionsRef.update({
-  //   "usertokes": usertokens
-  // });  THIS CODE ADDS A NEW entry at bottom of list, kinda funny
-  
-
+	valChanged = true;
+	
+			}
+	}
+	
+	// console.log("playerArray:");
+	// console.log(playerArray);
+	
+//	console.log("connections");
+	// console.log(connections);
+	
+	// console.log("playerArray.indexOf(myPlayerID)"); use this for "you are player #"
+	// console.log(playerArray.indexOf(myPlayerID));
+	
+	var leftPlayer;
+	if (playerArray.indexOf(myPlayerID) === 0) leftPlayer = playerArray.length-1;
+	else leftPlayer = playerArray.indexOf(myPlayerID)-1;
+	//console.log("left player:");
+	//console.log(playerArray[leftPlayer]);
+	
+	var rightPlayer;
+	if (playerArray.indexOf(myPlayerID) === playerArray.length-1) rightPlayer = 0;
+	else rightPlayer = playerArray.indexOf(myPlayerID)+1;
+	//console.log("right player:");
+	//console.log(playerArray[rightPlayer]);
+	
+	if (valChanged) con.update({ usertokens: usertokens });
+	
+	if (passLeft) {
+		connections[playerArray[leftPlayer]].usertokens++;
+		connectionsRef.child(playerArray[leftPlayer]).update({ usertokens: connections[playerArray[leftPlayer]].usertokens });
+	}
+	
+	if (passRight) {
+		connections[playerArray[rightPlayer]].usertokens++;
+		connectionsRef.child(playerArray[rightPlayer]).update({ usertokens: connections[playerArray[rightPlayer]].usertokens });
+	}
 }
