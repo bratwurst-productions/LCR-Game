@@ -194,25 +194,25 @@ function renderDice(rollResultsArray) {
 	for (var i = 0; i < rollResultsArray.length; i++) {
 		//Do nothing, player loses no chips 
 		if (rollResultsArray[i] === "snake_eye") {
-			$("#dice-images").append('<img class="diceimage" src="assets/Images/snake eyes dice face.png" />');
+			$("#dice-images").append('<img class="diceimage" src="assets/images/dot.png" />');
 		}
 		//pass chip to right of player, player loses a chip
 		if (rollResultsArray[i] === "R") {
-			$("#dice-images").append('<img class="diceimage" src="assets/Images/Rdice.png" />');
+			$("#dice-images").append('<img class="diceimage" src="assets/images/r.png" />');
 			userTokens--;
 			valChanged = true;
 			passRight = true;
 		}
 		//pass chip to left, player loses a chip
 		if (rollResultsArray[i] === "L") {
-			$("#dice-images").append('<img class="diceimage" src="assets/Images/Ldice.png" />');
+			$("#dice-images").append('<img class="diceimage" src="assets/images/l.png" />');
 			userTokens--;
 			valChanged = true;
 			passLeft = true;
 		}
 		//pass chip to the center pile, chip is out of circulation now , player loses a chip
 		if (rollResultsArray[i] === "C") {
-			$("#dice-images").append('<img class="diceimage" src="assets/Images/Cdice.png" />');
+			$("#dice-images").append('<img class="diceimage" src="assets/images/c.png" />');
 			userTokens--;
 			valChanged = true;
 		}
