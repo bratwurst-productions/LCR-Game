@@ -122,10 +122,6 @@ connectionsRef.on("child_changed", childUpdateFunc);
 
 $("#game-status").html('Click "Start or Join Game" to begin!');
 
-//if (myAvatarURL) console.log("myAvatarURL: " + myAvatarURL);
-//console.log();
-//$("#avatar").html(`<img src=${myAvatarURL} />`);
-
 
 // --------------------------------------------------------------
 // At the page load and subsequent value changes, get a snapshot of the local data.
