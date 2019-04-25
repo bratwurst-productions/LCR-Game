@@ -13,8 +13,8 @@ var currentMatches = 0;
 var chatHistory = [];
 var chatRowLimit = 10;
 var newUserComment = {
-  commentator: "",
-  comment: ""
+	commentator: "",
+	comment: ""
 }
 
 let userTokens = 3; //all players begin game with three chips each
@@ -28,24 +28,24 @@ var myPlayerID = null;
 
 switch (Math.floor(Math.random() * 3)) {
 	case 0:
-		$("body").css("background",`darkslategray url(./assets/background_images/Oriental_Lizard-reduced.jpg) no-repeat top center/cover fixed`);
+		$("body").css("background", `darkslategray url(./assets/background_images/Oriental_Lizard-reduced.jpg) no-repeat top center/cover fixed`);
 		break;
 	case 1:
-		$("body").css("background",`darkslategray url("./assets/background_images/sugarloaf_sunrise_reduced_cropped.jpg") no-repeat top center/cover fixed`);
+		$("body").css("background", `darkslategray url("./assets/background_images/sugarloaf_sunrise_reduced_cropped.jpg") no-repeat top center/cover fixed`);
 		break;
 	case 2:
-		$("body").css("background",`darkslategray url("./assets/background_images/Gulls_on_Morro_Strand_State_Beach_reduced_cropped.jpg") no-repeat top center/cover fixed`);
+		$("body").css("background", `darkslategray url("./assets/background_images/Gulls_on_Morro_Strand_State_Beach_reduced_cropped.jpg") no-repeat top center/cover fixed`);
 		break;
-	// no default case needed because we have a fallback in style.css for background color
+		// no default case needed because we have a fallback in style.css for background color
 }
 
 var config = {
-  apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
-  authDomain: "lcr-game.firebaseapp.com",
-  databaseURL: "https://lcr-game.firebaseio.com",
-  projectId: "lcr-game",
-  storageBucket: "lcr-game.appspot.com",
-  messagingSenderId: "797678842345"
+	apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
+	authDomain: "lcr-game.firebaseapp.com",
+	databaseURL: "https://lcr-game.firebaseio.com",
+	projectId: "lcr-game",
+	storageBucket: "lcr-game.appspot.com",
+	messagingSenderId: "797678842345"
 };
 
 firebase.initializeApp(config);
@@ -65,40 +65,41 @@ var connectedRef = database.ref(".info/connected");
 // When the client's connection state changes...
 connectedRef.on("value", function (snap) {
 
-// If they are connected..
+	// If they are connected..
 	if (snap.val()) {
-	
+
 		// Add user to the connections list.
 		var con = connectionsRef.push({
 			"waiting": false,
 			"matched": false,
 			"userTokens": userTokens
 		});
-	
+
 		// Remove user from the connection list when they disconnect.
 		con.onDisconnect().remove(); // update waiting players or matched players
 	}
 	window.con = con;
 });
 
-var connectionsUpdateFunc = function(snap) {
+var connectionsUpdateFunc = function (snap) {
 	// Display the viewer count in the html.
 	// The number of online users is the number of children in the connections list.
 	$("#connected-viewers").text(snap.numChildren() + " player(s) connected.");
 	window.playerArray = Object.keys(snap.val());
-	if (!myPlayerID) myPlayerID = playerArray[playerArray.length-1]
+	if (!myPlayerID) myPlayerID = playerArray[playerArray.length - 1];
 	window.connections = snap.val();
+	console.log(connections)
 	$("#current-matches").text(currentMatches + " players currently joined.");
 	//$("#waiting").text(playersWaiting + " player(s) waiting for a match");
 	$("#center-chips").text(centerTokens);
 	$("#chip-total").text(userTokens);
 	playerArray.indexOf(myPlayerID);
-	$("#player-number").text(playerArray.indexOf(myPlayerID)+1);
+	$("#player-number").text(playerArray.indexOf(myPlayerID) + 1);
 }
 // When first loaded or when the connections list changes...
 connectionsRef.on("value", connectionsUpdateFunc);
 
-var childUpdateFunc = function(snap) {
+var childUpdateFunc = function (snap) {
 	if (myPlayerID) {
 		if (myPlayerID === snap.key) {
 			userTokens = snap.val().userTokens;
@@ -123,9 +124,8 @@ database.ref("/chatData").on("value", function (snapshot) {
 		newUserComment = snapshot.val().newComment;
 		if (chatHistory[chatHistory.length - 1] !== snapshot.val().newComment)
 			if (chatHistory.length > chatRowLimit) chatHistory = chatHistory.slice(1); //we only want a max of 16 comments after the push
-	}
-	else newUserComment = {};
-	
+	} else newUserComment = {};
+
 	for (; chatHistory.length < chatRowLimit; chatHistory.push({})) {};
 	chatHistory.push(newUserComment);
 	$("#chat-history").html(chatHistory.map(showHistory));
@@ -161,11 +161,11 @@ $("#submit-comment").on("click", function (event) {
 
 // Whenever a user clicks the clear chat button
 $("#clear-comments").on("click", function (event) {
-	
+
 	event.preventDefault();
 	chatHistory = [];
 	database.ref("/chatData").set({});
-	
+
 	for (; chatHistory.length < chatRowLimit; chatHistory.push({})) {};
 	$("#chat-history").html(chatHistory.map(showHistory));
 });
@@ -176,7 +176,7 @@ $("#clear-comments").on("click", function (event) {
 
 //This function rolls a single dice and returns the value of that dice
 function rollDie() {
-	let possibleDieValues = ["L","R","C","snake_eye","snake_eye","snake_eye"];
+	let possibleDieValues = ["L", "R", "C", "snake_eye", "snake_eye", "snake_eye"];
 	let rand = possibleDieValues[Math.floor(Math.random() * possibleDieValues.length)];
 	return rand;
 }
@@ -185,7 +185,7 @@ function rollDie() {
 //if the player has 4 tokens then the function will return an array of 4 dice/values
 function playerRoll(dice) {
 	let rollResults = [];
-	
+
 	for (var i = 0; i < dice; i++) {
 		rollResults.push(rollDie());
 	}
@@ -195,15 +195,24 @@ function playerRoll(dice) {
 $("#roll-dice").on("click", function (event) {
 	event.preventDefault();
 	$("#dice-images").html("");
-	renderDice(playerRoll(userTokens)); 
+	renderDice(playerRoll(userTokens));
 });
 
 function renderDice(rollResultsArray) {
-	
+
 	var valChanged = false;
 	var passLeft = false;
 	var passRight = false;
-	
+
+
+	var leftPlayer;
+	if (playerArray.indexOf(myPlayerID) === 0) leftPlayer = playerArray.length - 1;
+	else leftPlayer = playerArray.indexOf(myPlayerID) - 1;
+
+	var rightPlayer;
+	if (playerArray.indexOf(myPlayerID) === playerArray.length - 1) rightPlayer = 0;
+	else rightPlayer = playerArray.indexOf(myPlayerID) + 1;
+
 	for (var i = 0; i < rollResultsArray.length; i++) {
 		//Do nothing, player loses no chips 
 		if (rollResultsArray[i] === "snake_eye") {
@@ -215,13 +224,22 @@ function renderDice(rollResultsArray) {
 			userTokens--;
 			valChanged = true;
 			passRight = true;
+			connections[playerArray[rightPlayer]].userTokens++;
+			connectionsRef.child(playerArray[rightPlayer]).update({
+				userTokens: connections[playerArray[rightPlayer]].userTokens
+			});
 		}
+
 		//pass chip to left, player loses a chip
 		if (rollResultsArray[i] === "L") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/l.png" />');
 			userTokens--;
 			valChanged = true;
 			passLeft = true;
+			connections[playerArray[leftPlayer]].userTokens++;
+			connectionsRef.child(playerArray[leftPlayer]).update({
+				userTokens: connections[playerArray[leftPlayer]].userTokens
+			});
 		}
 		//pass chip to the center pile, chip is out of circulation now , player loses a chip
 		if (rollResultsArray[i] === "C") {
@@ -230,24 +248,9 @@ function renderDice(rollResultsArray) {
 			valChanged = true;
 		}
 	}
-	
-	var leftPlayer;
-	if (playerArray.indexOf(myPlayerID) === 0) leftPlayer = playerArray.length-1;
-	else leftPlayer = playerArray.indexOf(myPlayerID)-1;
-		
-	var rightPlayer;
-	if (playerArray.indexOf(myPlayerID) === playerArray.length-1) rightPlayer = 0;
-	else rightPlayer = playerArray.indexOf(myPlayerID)+1;
 
-	if (valChanged) con.update({ userTokens: userTokens });
-	
-	if (passLeft) {
-		connections[playerArray[leftPlayer]].userTokens++;
-		connectionsRef.child(playerArray[leftPlayer]).update({ userTokens: connections[playerArray[leftPlayer]].userTokens });
-	}
-	
-	if (passRight) {
-		connections[playerArray[rightPlayer]].userTokens++;
-		connectionsRef.child(playerArray[rightPlayer]).update({ userTokens: connections[playerArray[rightPlayer]].userTokens });
-	}
+	if (valChanged) con.update({
+		userTokens: userTokens
+	});
+
 }
