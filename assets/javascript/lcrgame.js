@@ -3,23 +3,13 @@ The Rules
 https://plentifun.com/rules-to-play-left-right-center-lcr-dice-game
 */
 
-/* global moment firebase */
-
-// Initialize Firebase
-// Make sure to match the configuration to the script version number in the HTML
-// (Ex. 3.0 != 3.7.0)
+////////////////////////////////////
+// global definitions:
+////////////////////////////////////
 
 var currentMatches = 0;
-var chatHistory = [];
-var chatRowLimit = 10;
-var newUserComment = {
-	commentator: "",
-	comment: ""
-}
-
 let userTokens = 3; //all players begin game with three chips each
 var centerTokens = 0;
-
 var matched = false;
 var waiting = false;
 var playersWaiting = 0;
@@ -39,6 +29,16 @@ switch (Math.floor(Math.random() * 3)) {
 		break;
 		// no default case needed because we have a fallback in style.css for background color
 }
+
+////////////////////////////////////
+// firebase functions:
+////////////////////////////////////
+
+/* global moment firebase */
+
+// Initialize Firebase
+// Make sure to match the configuration to the script version number in the HTML
+// (Ex. 3.0 != 3.7.0)
 
 var config = {
 	apiKey: "AIzaSyBw0KSKijEdaesz-Unx7jMrhHqw4SBYHU4",
@@ -95,7 +95,6 @@ var connectionsUpdateFunc = function (snap) {
 	window.playerArray = Object.keys(snap.val());
 	if (!myPlayerID) myPlayerID = playerArray[playerArray.length - 1];
 	window.connections = snap.val();
-	console.log(connections)
 	$("#current-matches").text(currentMatches + " players currently joined.");
 	//$("#waiting").text(playersWaiting + " player(s) waiting for a match");
 	$("#center-chips").text(centerTokens);
@@ -123,13 +122,21 @@ connectionsRef.on("child_changed", childUpdateFunc);
 $("#game-status").html('Click "Start or Join Game" to begin!');
 
 
+////////////////////////////////////
+// chat feature:
+////////////////////////////////////
+
+var chatHistory = [];
+var chatRowLimit = 10;
+var newUserComment = {
+	commentator: "",
+	comment: ""
+}
+
 // --------------------------------------------------------------
 // At the page load and subsequent value changes, get a snapshot of the local data.
 // This function allows you to update your page in real-time when the values within the firebase node chatData changes
 
-////////////////////////////////////
-// chat functions:
-////////////////////////////////////
 database.ref("/chatData").on("value", function (snapshot) {
 	if (snapshot.child("newComment").exists()) {
 		newUserComment = snapshot.val().newComment;
@@ -151,38 +158,8 @@ function showHistory(commentObj) {
 	else return `<div class="row"><div class="col" style="min-height:1.5em"></div></div>`;
 }
 
-// CLICK EVENT LISTENERS:
-// --------------------------------------------------------------
-// Whenever a user clicks the submit button
-$("#submit-comment").on("click", function (event) {
-	event.preventDefault();
-	// Get the input values
-	var commenterName = $("#commenter-name").val().trim();
-	var newUserComment = $("#new-comment").val().trim();
-	if (newUserComment && commenterName) {
-		database.ref("/chatData").set({
-			newComment: {
-				commentator: commenterName,
-				comment: newUserComment
-			},
-		});
-	}
-	$("#new-comment").val("");
-});
-
-// Whenever a user clicks the clear chat button
-$("#clear-comments").on("click", function (event) {
-
-	event.preventDefault();
-	chatHistory = [];
-	database.ref("/chatData").set({});
-
-	for (; chatHistory.length < chatRowLimit; chatHistory.push({})) {};
-	$("#chat-history").html(chatHistory.map(showHistory));
-});
-
 ////////////////////////////////////
-// chat functions:
+// game functions:
 ////////////////////////////////////
 
 //This function rolls a single dice and returns the value of that dice
@@ -202,12 +179,6 @@ function playerRoll(dice) {
 	}
 	return rollResults;
 }
-
-$("#roll-dice").on("click", function (event) {
-	event.preventDefault();
-	$("#dice-images").html("");
-	renderDice(playerRoll(userTokens));
-});
 
 function renderDice(rollResultsArray) {
 
@@ -265,3 +236,46 @@ function renderDice(rollResultsArray) {
 	});
 
 }
+
+////////////////////////////////////
+// click listener functions:
+////////////////////////////////////
+
+//CHAT button listeners:
+
+// Whenever a user clicks the submit button
+$("#submit-comment").on("click", function (event) {
+	event.preventDefault();
+	// Get the input values
+	var commenterName = $("#commenter-name").val().trim();
+	var newUserComment = $("#new-comment").val().trim();
+	if (newUserComment && commenterName) {
+		database.ref("/chatData").set({
+			newComment: {
+				commentator: commenterName,
+				comment: newUserComment
+			},
+		});
+	}
+	$("#new-comment").val("");
+});
+
+// Whenever a user clicks the clear chat button
+$("#clear-comments").on("click", function (event) {
+
+	event.preventDefault();
+	chatHistory = [];
+	database.ref("/chatData").set({});
+
+	for (; chatHistory.length < chatRowLimit; chatHistory.push({})) {};
+	$("#chat-history").html(chatHistory.map(showHistory));
+});
+
+//GAME button listeners:
+
+// Whenever a user clicks the roll dice button
+$("#roll-dice").on("click", function (event) {
+	event.preventDefault();
+	$("#dice-images").html("");
+	renderDice(playerRoll(userTokens));
+});
