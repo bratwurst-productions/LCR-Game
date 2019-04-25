@@ -24,6 +24,7 @@ var matched = false;
 var waiting = false;
 var playersWaiting = 0;
 var myPlayerID = null;
+var myAvatarURL = "";
 
 
 switch (Math.floor(Math.random() * 3)) {
@@ -67,11 +68,17 @@ connectedRef.on("value", function (snap) {
 
 // If they are connected..
 	if (snap.val()) {
+		
+		if (!myAvatarURL) {
+			myAvatarURL = generateRandomAvatar();
+			$("#avatar").html(`<img src=${myAvatarURL} alt="player avatar" height="25%" width="25%">`);
+		}
 	
 		// Add user to the connections list.
 		var con = connectionsRef.push({
 			"waiting": false,
 			"matched": false,
+			"myAvatarURL": myAvatarURL,
 			"userTokens": userTokens
 		});
 	
@@ -111,7 +118,12 @@ var childUpdateFunc = function(snap) {
 
 connectionsRef.on("child_changed", childUpdateFunc);
 
-$("#game-status").html('Click "Start or Join Game" to begin!<br><br><br><br><br><br><br><br><br><br><br><br>');
+$("#game-status").html('Click "Start or Join Game" to begin!');
+
+//if (myAvatarURL) console.log("myAvatarURL: " + myAvatarURL);
+//console.log();
+//$("#avatar").html(`<img src=${myAvatarURL} />`);
+
 
 // --------------------------------------------------------------
 // At the page load and subsequent value changes, get a snapshot of the local data.

@@ -213,5 +213,3 @@ const generateRandomAvatar = (avatarType) => {
 
   return `https://avataaars.io/?avatarStyle=${avatarType || avatarStyle}&topType=${topStyle}&accessoriesType=${accessory}&hairColor=${hairColor}&hatColor=${hatColor}&facialHairType=${facialHairStyle}&facialHairColor=${facialHairColor}&clotheType=${clothing}&clotheColor=${clothingColor}&graphicType=${clothingGraphic}&eyeType=${eyesStyle}&eyebrowType=${eyebrow}&mouthType=${mouthStyle}&skinColor=${skinStyle}`
 }
-
-console.log(generateRandomAvatar());
