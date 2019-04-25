@@ -93,7 +93,9 @@ var connectionsUpdateFunc = function(snap) {
 	$("#center-chips").text(centerTokens);
 	$("#chip-total").text(userTokens);
 	playerArray.indexOf(myPlayerID);
-	$("#player-number").text(playerArray.indexOf(myPlayerID)+1);
+	$("#player-number").text(playerArray.indexOf(myPlayerID)+1); // ultimately, we don't want to display this number on the screen, because if someone leaves or becomes disconnected during a game, a player's player-number can change on the fly
+	// we want to identify player's via their avataaar
+	
 }
 // When first loaded or when the connections list changes...
 connectionsRef.on("value", connectionsUpdateFunc);
