@@ -10,12 +10,8 @@ https://plentifun.com/rules-to-play-left-right-center-lcr-dice-game
 var currentMatches = 0;
 let userTokens = 3; //all players begin game with three chips each
 var centerTokens = 0;
-var matched = false;
-var waiting = false;
-var playersWaiting = 0;
 var myPlayerID = null;
 var myAvatarURL = "";
-
 
 switch (Math.floor(Math.random() * 3)) {
 	case 0:
@@ -119,8 +115,8 @@ var childUpdateFunc = function (snap) {
 
 connectionsRef.on("child_changed", childUpdateFunc);
 
-$("#game-status").html('Click "Start or Join Game" to begin!');
-
+$("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Click "Join Game" to enter waiting pool.');
+// $("#game-status").html('Click "Start or Join Game" to begin!');
 
 ////////////////////////////////////
 // chat feature:
@@ -182,12 +178,8 @@ function playerRoll(dice) {
 
 function renderDice(rollResultsArray) {
 
-	var valChanged = false;
-	var passLeft = false;
-	var passRight = false;
-
-
-	var leftPlayer;
+	
+	var leftPlayer; 
 	if (playerArray.indexOf(myPlayerID) === 0) leftPlayer = playerArray.length - 1;
 	else leftPlayer = playerArray.indexOf(myPlayerID) - 1;
 
@@ -204,20 +196,17 @@ function renderDice(rollResultsArray) {
 		if (rollResultsArray[i] === "R") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/r.png" />');
 			userTokens--;
-			valChanged = true;
-			passRight = true;
+			con.update({userTokens: userTokens});
 			connections[playerArray[rightPlayer]].userTokens++;
 			connectionsRef.child(playerArray[rightPlayer]).update({
 				userTokens: connections[playerArray[rightPlayer]].userTokens
 			});
 		}
-
 		//pass chip to left, player loses a chip
 		if (rollResultsArray[i] === "L") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/l.png" />');
 			userTokens--;
-			valChanged = true;
-			passLeft = true;
+			con.update({userTokens: userTokens});
 			connections[playerArray[leftPlayer]].userTokens++;
 			connectionsRef.child(playerArray[leftPlayer]).update({
 				userTokens: connections[playerArray[leftPlayer]].userTokens
@@ -227,14 +216,9 @@ function renderDice(rollResultsArray) {
 		if (rollResultsArray[i] === "C") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/c.png" />');
 			userTokens--;
-			valChanged = true;
+			con.update({userTokens: userTokens});
 		}
 	}
-
-	if (valChanged) con.update({
-		userTokens: userTokens
-	});
-
 }
 
 ////////////////////////////////////
@@ -275,7 +259,24 @@ $("#clear-comments").on("click", function (event) {
 
 // Whenever a user clicks the roll dice button
 $("#roll-dice").on("click", function (event) {
-	event.preventDefault();
+	event.preventDefault(); //is this necessary for all buttons or only for "input" type buttons?
 	$("#dice-images").html("");
 	renderDice(playerRoll(userTokens));
+});
+
+// Whenever a user clicks the join-game button
+$("#join-game").on("click", function (event) {
+	// event.preventDefault(); // commenting this out didn't seem to cause any issues for this "submit" type button
+	
+	//if waiting = false, then deactive join game button and activate start game button
+	// also, change waiting to true, and set matched to false and push to firebase
+	if (!connections[myPlayerID].waiting) {
+		
+	}
+	
+});
+
+// Whenever a user clicks the start-game button
+$("#start-game").on("click", function (event) {
+	event.preventDefault();
 });
