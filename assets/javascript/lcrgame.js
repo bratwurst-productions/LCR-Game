@@ -24,6 +24,7 @@ var matched = false;
 var waiting = false;
 var playersWaiting = 0;
 var myPlayerID = null;
+var myAvatarURL = "";
 
 
 switch (Math.floor(Math.random() * 3)) {
@@ -67,11 +68,17 @@ connectedRef.on("value", function (snap) {
 
 	// If they are connected..
 	if (snap.val()) {
+		
+		if (!myAvatarURL) {
+			myAvatarURL = generateRandomAvatar();
+			$("#avatar").html(`<img src=${myAvatarURL} alt="player avatar" height="25%" width="25%">`);
+		}
 
 		// Add user to the connections list.
 		var con = connectionsRef.push({
 			"waiting": false,
 			"matched": false,
+			"myAvatarURL": myAvatarURL,
 			"userTokens": userTokens
 		});
 
@@ -94,7 +101,10 @@ var connectionsUpdateFunc = function (snap) {
 	$("#center-chips").text(centerTokens);
 	$("#chip-total").text(userTokens);
 	playerArray.indexOf(myPlayerID);
-	$("#player-number").text(playerArray.indexOf(myPlayerID) + 1);
+
+	$("#player-number").text(playerArray.indexOf(myPlayerID)+1); // ultimately, we don't want to display this number on the screen, because if someone leaves or becomes disconnected during a game, a player's player-number can change on the fly
+	// we want to identify player's via their avataaar
+	
 }
 // When first loaded or when the connections list changes...
 connectionsRef.on("value", connectionsUpdateFunc);
@@ -110,7 +120,12 @@ var childUpdateFunc = function (snap) {
 
 connectionsRef.on("child_changed", childUpdateFunc);
 
-$("#game-status").html('Click "Start or Join Game" to begin!<br><br><br><br><br><br><br><br><br><br><br><br>');
+$("#game-status").html('Click "Start or Join Game" to begin!');
+
+//if (myAvatarURL) console.log("myAvatarURL: " + myAvatarURL);
+//console.log();
+//$("#avatar").html(`<img src=${myAvatarURL} />`);
+
 
 // --------------------------------------------------------------
 // At the page load and subsequent value changes, get a snapshot of the local data.
