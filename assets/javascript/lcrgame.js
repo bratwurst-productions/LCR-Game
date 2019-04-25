@@ -7,11 +7,13 @@ https://plentifun.com/rules-to-play-left-right-center-lcr-dice-game
 // global definitions:
 ////////////////////////////////////
 
-var currentMatches = 0;
 let userTokens = 3; //all players begin game with three chips each
 var centerTokens = 0;
 var myPlayerID = null;
 var myAvatarURL = "";
+var currentWaitingPlayers = 0;
+var gameStarted = false;
+var connectedUsers = 0;
 
 switch (Math.floor(Math.random() * 3)) {
 	case 0:
@@ -77,7 +79,7 @@ connectedRef.on("value", function (snap) {
 			"myAvatarURL": myAvatarURL,
 			"userTokens": userTokens
 		});
-
+		
 		// Remove user from the connection list when they disconnect.
 		con.onDisconnect().remove(); // update waiting players or matched players
 	}
@@ -85,35 +87,81 @@ connectedRef.on("value", function (snap) {
 });
 
 var connectionsUpdateFunc = function (snap) {
+		
+	function countCurrentlyWaiting() {
+		
+		if (!gameStarted) {
+			var waiting = 0;
+			for (var x = 0; x < playerArray.length; x++) {
+				if (connections[playerArray[x]].waiting) waiting++;
+			}
+		}
+		else if (gameStarted) $("#currently-joined").html("<em>game in progress</em>");
+			
+			currentWaitingPlayers = waiting;
+			console.log("currentWaitingPlayers: " + currentWaitingPlayers);
+			return waiting;
+		//if the updated child's waiting value updated, count all children's waiting = true
+		//update currentWaitingPlayers
+		//return currentWaitingPlayers
+	}
+	
 	// Display the viewer count in the html.
 	// The number of online users is the number of children in the connections list.
-	$("#connected-viewers").text(snap.numChildren() + " player(s) connected.");
+	var numChildren = snap.numChildren();
 	window.playerArray = Object.keys(snap.val());
-	if (!myPlayerID) myPlayerID = playerArray[playerArray.length - 1];
 	window.connections = snap.val();
-	$("#current-matches").text(currentMatches + " players currently joined.");
-	//$("#waiting").text(playersWaiting + " player(s) waiting for a match");
+	if (connectedUsers != numChildren) {
+		$("#connected-viewers").text(numChildren + " player(s) connected.");
+		if (connectedUsers < numChildren) {
+			console.log(countCurrentlyWaiting());
+		}
+		if (connectedUsers < numChildren) {
+			
+		}
+	}
+		connectedUsers = numChildren;
+
+	
+	
+	if (!myPlayerID) myPlayerID = playerArray[playerArray.length - 1];
+	
 	$("#center-chips").text(centerTokens);
 	$("#chip-total").text(userTokens);
 	playerArray.indexOf(myPlayerID);
 
 	$("#player-number").text(playerArray.indexOf(myPlayerID)+1); // ultimately, we don't want to display this number on the screen, because if someone leaves or becomes disconnected during a game, a player's player-number can change on the fly
 	// we want to identify player's via their avataaar
-	
 }
 // When first loaded or when the connections list changes...
-connectionsRef.on("value", connectionsUpdateFunc);
-
 var childUpdateFunc = function (snap) {
+	
 	if (myPlayerID) {
 		if (myPlayerID === snap.key) {
 			userTokens = snap.val().userTokens;
 			$("#chiptotal").text(userTokens);
 		}
 	}
+	
+	if (!gameStarted && connectedUsers > 0) $("#currently-joined").text(currentWaitingPlayers + " players currently joined and waiting to begin.");
+	else if (currentWaitingPlayers === 0) $("#currently-joined").text("There are zero players currently joined."); 
+	
 }
 
+var childAddedFunc = function(snapshot, prevChildKey) {
+	console.log(snapshot.val().key);
+}	
+connectionsRef.on("value", connectionsUpdateFunc);
 connectionsRef.on("child_changed", childUpdateFunc);
+connectionsRef.on("child_added", childAddedFunc);
+var selfValueListener = function(snap) {
+	if ($("#join-game").attr("disabled") && !gameStarted) {
+		if (!gameStarted && connectedUsers > 0) $("#currently-joined").text(currentWaitingPlayers + " players currently joined and waiting to begin.");
+		else if (currentWaitingPlayers === 0) $("#currently-joined").text("There are zero players currently joined.");
+	}
+} ;
+connectionsRef.con.on("child_changed", selfValueListener);
+
 
 $("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Click "Join Game" to enter waiting pool.');
 // $("#game-status").html('Click "Start or Join Game" to begin!');
@@ -264,14 +312,35 @@ $("#roll-dice").on("click", function (event) {
 	renderDice(playerRoll(userTokens));
 });
 
+function activateGameButton(selector) {
+	$(selector).addClass("btn-primary").removeClass("btn-secondary");
+	$(selector).attr("disabled", false);
+	if (selector.includes("start")) $("#start-game").html("Start Game");
+	else if (selector.includes("join")) $(selector).html("Join Game");
+}
+
+function deactivateGameButton (selector) {
+	$(selector).addClass("btn-secondary").removeClass("btn-primary");
+	$(selector).attr("disabled","disabled");
+	if (selector.includes("join")) $(selector).html("<i>Join Game</i>");
+	else if (selector.includes("start")) $(selector).html("<i>Start Game</i>");
+}
+
 // Whenever a user clicks the join-game button
 $("#join-game").on("click", function (event) {
 	// event.preventDefault(); // commenting this out didn't seem to cause any issues for this "submit" type button
 	
-	//if waiting = false, then deactive join game button and activate start game button
+	//if waiting = false, then deactive join game button but don't activate start game button until at least three players are waiting (maybe cause start button to become visible if it begins invisible
 	// also, change waiting to true, and set matched to false and push to firebase
 	if (!connections[myPlayerID].waiting) {
+		con.update({"waiting": true, "matched":false});
 		
+		deactivateGameButton("#join-game");
+		//activateGameButton("#start-game");
+		
+		
+		$("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Waiting to start game....');
+		//childUpdateFunc();
 	}
 	
 });
