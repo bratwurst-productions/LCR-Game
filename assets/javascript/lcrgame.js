@@ -55,6 +55,7 @@ var database = firebase.database();
 // connectionsRef references a specific location in our database.
 // All of our connections will be stored in this directory.
 var connectionsRef = database.ref("/connections");
+var gamesRef = database.ref("/games");
 
 // '.info/connected' is a special location provided by Firebase that is updated
 // every time the client's connection state changes.
@@ -142,10 +143,19 @@ var childUpdateFunc = function (snap) {
 			$("#chiptotal").text(userTokens);
 		}
 	}
-	
-	if (!gameStarted && connectedUsers > 0) $("#currently-joined").text(currentWaitingPlayers + " players currently joined and waiting to begin.");
-	else if (currentWaitingPlayers === 0) $("#currently-joined").text("There are zero players currently joined."); 
-	
+}
+
+function updateWaitingCount() {
+
+	connectionsRef.once("value").then(function(snapshot) {
+			connections = snapshot.val();
+			playerArray = Object.keys(connections);
+		});
+	var waiting = 0;
+	for (var x = 0; x < playerArray.length; x++) {
+		if (connections[playerArray[x]].waiting) waiting++;
+	} 
+	return waiting;
 }
 
 var childAddedFunc = function(snapshot, prevChildKey) {
@@ -153,14 +163,16 @@ var childAddedFunc = function(snapshot, prevChildKey) {
 }	
 connectionsRef.on("value", connectionsUpdateFunc);
 connectionsRef.on("child_changed", childUpdateFunc);
+
 connectionsRef.on("child_added", childAddedFunc);
-var selfValueListener = function(snap) {
-	if ($("#join-game").attr("disabled") && !gameStarted) {
-		if (!gameStarted && connectedUsers > 0) $("#currently-joined").text(currentWaitingPlayers + " players currently joined and waiting to begin.");
-		else if (currentWaitingPlayers === 0) $("#currently-joined").text("There are zero players currently joined.");
-	}
-} ;
-connectionsRef.con.on("child_changed", selfValueListener);
+var gamesUpdateFunc = function(snapshot) {
+	console.log(snapshot.val());
+	//if (!snapshot.val().waitingCount) 
+	//console.log("updated waiting count: " + updateWaitingCount());
+	//update count of players waiting for this game
+	
+};
+gamesRef.on("value", gamesUpdateFunc);
 
 
 $("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Click "Join Game" to enter waiting pool.');
@@ -332,16 +344,46 @@ $("#join-game").on("click", function (event) {
 	
 	//if waiting = false, then deactive join game button but don't activate start game button until at least three players are waiting (maybe cause start button to become visible if it begins invisible
 	// also, change waiting to true, and set matched to false and push to firebase
-	if (!connections[myPlayerID].waiting) {
-		con.update({"waiting": true, "matched":false});
-		
-		deactivateGameButton("#join-game");
-		//activateGameButton("#start-game");
-		
-		
-		$("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Waiting to start game....');
-		//childUpdateFunc();
-	}
+	var readOnce = con.once("value").then(function(snapshot) {
+		var myValues = snapshot.val();
+		if (!myValues.waiting) {
+			con.update({"waiting": true, "matched":false});
+			deactivateGameButton("#join-game");
+			$("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Waiting to start game....');
+			gamesRef.once("value").then(function(snapshot) {
+				//return snapshot.val();
+				if (snapshot.numChildren() === 0) {
+					var newGame = gamesRef.push({"gameStarted":false, "waitingCount":1});
+					con.update({"gameID": newGame.key});
+					
+				}
+				else if (snapshot.numChildren() === 1) {
+					//console.log(Object.keys(snapshot.val())[0]);
+					database.ref("/games/" +Object.keys(snapshot.val())[0]).update({"waitingCount":updateWaitingCount()});
+					con.update({"gameID": Object.keys(snapshot.val())[0]});
+					console.log("updated waiting count in game");
+				}
+				else if (snapshot.numChildren() > 1) {
+					console.log("current Games: " + snapshot.numChildren());
+				}
+				else console.log("something went wrong");
+				
+			});
+			//check to see if gamesRef has any size, i.e., if games exist.
+			
+			/*
+			if (!currentGames) {
+				var newGame = gamesRef.push({"gameStarted":false, "waitingCount":updateWaitingCount()});
+			}
+			else if (currentGames.numChildren() > 0) {
+				console.log("currentGames:");
+				consol.log(currentGames);
+			}
+			*/
+			
+			//activateGameButton("#start-game");
+		}
+	});
 	
 });
 
