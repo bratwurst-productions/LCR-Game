@@ -206,10 +206,16 @@ const generateRandomAvatar = (avatarType) => {
   const skinStyle = skin[getRandom(skin.length)]
   const topStyle = topp[getRandom(topp.length)]
 
-  let avatarStyle = 'Transparent'
-  if (Math.floor(Math.random() * 2) === 1) {
-    avatarStyle = 'Circle'
-  }
+  let avatarStyle = 'Transparent';
+  if (Math.floor(Math.random() * 2) === 1) avatarStyle = 'Circle';
 
   return `https://avataaars.io/?avatarStyle=${avatarType || avatarStyle}&topType=${topStyle}&accessoriesType=${accessory}&hairColor=${hairColor}&hatColor=${hatColor}&facialHairType=${facialHairStyle}&facialHairColor=${facialHairColor}&clotheType=${clothing}&clotheColor=${clothingColor}&graphicType=${clothingGraphic}&eyeType=${eyesStyle}&eyebrowType=${eyebrow}&mouthType=${mouthStyle}&skinColor=${skinStyle}`
 }
+
+//mutate the generate random avatar function by only using some of the dimensions of the avatar as randomized. Others will be mutated according to what emotion they will be exhibiting.
+//so there will be a "base" random avatar, which will be made to be either happy or sad/angry depending on the results of their roll or according to their chip ranking 
+
+//also, we should probably just go with the circle for avatar style so it shows up well on the white background
+
+//the only items which are relevant to emoting are eyes, eyebrows, and mouth, so we only have to change those to cause avatar to emote
+//we may want to see if we can keep facial hear color and hard color the same?
