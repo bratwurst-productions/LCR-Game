@@ -88,49 +88,17 @@ connectedRef.on("value", function (snap) {
 });
 
 var connectionsUpdateFunc = function (snap) {
-		
-	function countCurrentlyWaiting() {
-		
-		if (!gameStarted) {
-			var waiting = 0;
-			for (var x = 0; x < playerArray.length; x++) {
-				if (connections[playerArray[x]].waiting) waiting++;
-			}
-		}
-		else if (gameStarted) $("#currently-joined").html("<em>game in progress</em>");
-			
-			currentWaitingPlayers = waiting;
-			console.log("currentWaitingPlayers: " + currentWaitingPlayers);
-			return waiting;
-		//if the updated child's waiting value updated, count all children's waiting = true
-		//update currentWaitingPlayers
-		//return currentWaitingPlayers
-	}
 	
 	// Display the viewer count in the html.
 	// The number of online users is the number of children in the connections list.
 	var numChildren = snap.numChildren();
 	window.playerArray = Object.keys(snap.val());
 	window.connections = snap.val();
-	if (connectedUsers != numChildren) {
-		$("#connected-viewers").text(numChildren + " player(s) connected.");
-		if (connectedUsers < numChildren) {
-			console.log(countCurrentlyWaiting());
-		}
-		if (connectedUsers < numChildren) {
-			
-		}
-	}
-		connectedUsers = numChildren;
-
-	
-	
+	$("#connected-viewers").text(numChildren + " player(s) connected.");
 	if (!myPlayerID) myPlayerID = playerArray[playerArray.length - 1];
-	
 	$("#center-chips").text(centerTokens);
 	$("#chip-total").text(userTokens);
 	playerArray.indexOf(myPlayerID);
-
 	$("#player-number").text(playerArray.indexOf(myPlayerID)+1); // ultimately, we don't want to display this number on the screen, because if someone leaves or becomes disconnected during a game, a player's player-number can change on the fly
 	// we want to identify player's via their avataaar
 }
@@ -146,7 +114,6 @@ var childUpdateFunc = function (snap) {
 }
 
 function updateWaitingCount() {
-
 	connectionsRef.once("value").then(function(snapshot) {
 			connections = snapshot.val();
 			playerArray = Object.keys(connections);
@@ -158,22 +125,49 @@ function updateWaitingCount() {
 	return waiting;
 }
 
-var childAddedFunc = function(snapshot, prevChildKey) {
-	console.log(snapshot.val().key);
-}	
 connectionsRef.on("value", connectionsUpdateFunc);
+connectionsRef.on("child_removed", function(snapshot) {
+	if (typeof snapshot.val().gameID !== "undefined") {
+		var waiting = updateWaitingCount();
+		database.ref("/games/" + snapshot.val().gameID).update({"waitingCount": waiting});
+	}
+});
+
 connectionsRef.on("child_changed", childUpdateFunc);
 
-connectionsRef.on("child_added", childAddedFunc);
-var gamesUpdateFunc = function(snapshot) {
-	console.log(snapshot.val());
-	//if (!snapshot.val().waitingCount) 
-	//console.log("updated waiting count: " + updateWaitingCount());
-	//update count of players waiting for this game
-	
-};
-gamesRef.on("value", gamesUpdateFunc);
+gamesRef.on("child_added", function(snapshot) {
+	database.ref("/games/"+snapshot.key+"/waitingCount").on("value", function(snapshot) {
+		var waiting = snapshot.val();
+		//console.log("waiting on game: " + snapshot.val());
+		$("#currently-joined").text("There are " + waiting + " player(s) currently joined and waiting to begin.");
+	if (waiting >= 3) {
+		//if start button not active for waiting players, activate start button for all waiting players
+		if ($("#start-game").attr("disabled")) activateGameButton("#start-game");
+		//
+	}
+	else if (waiting < 3) {
+		//if start button active for waiting players, inactivate it for all waiting players
+		if (!$("#start-game").attr("disabled")) deactivateGameButton("#start-game");
+		//
+	}
+	});
+});
 
+gamesRef.on("child_changed", function(snapshot) {
+	console.log(snapshot.val());
+	if (snapshot.val().gameStarted) {
+		//re-deactivate or hide start game and join game buttons
+		//show inactive roll dice button
+		//perhaps have start game and join game in one row and roll dice in another row, 
+		//and simply toggle rows invisible/visible
+		//game_agent should determine who goes first pseudo-randomly and then proceed in order.
+		//if someone doesn't roll within a reasonable amount of time, they either forfeit their chips to the center pot (attribute of the active game), or they roll automatically.
+		//if they leave by closing browser or tab or otherwise disconnecting, their chips are forfeited to center pot.
+		// forfeits are mentioned by game agent.
+		//game agent history should be available if one were to scroll upward.
+		
+	}
+});
 
 $("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Click "Join Game" to enter waiting pool.');
 // $("#game-status").html('Click "Start or Join Game" to begin!');
@@ -340,8 +334,7 @@ function deactivateGameButton (selector) {
 
 // Whenever a user clicks the join-game button
 $("#join-game").on("click", function (event) {
-	// event.preventDefault(); // commenting this out didn't seem to cause any issues for this "submit" type button
-	
+	event.preventDefault(); // commenting this out didn't seem to cause any issues for this "submit" type button
 	//if waiting = false, then deactive join game button but don't activate start game button until at least three players are waiting (maybe cause start button to become visible if it begins invisible
 	// also, change waiting to true, and set matched to false and push to firebase
 	var readOnce = con.once("value").then(function(snapshot) {
@@ -351,43 +344,33 @@ $("#join-game").on("click", function (event) {
 			deactivateGameButton("#join-game");
 			$("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Waiting to start game....');
 			gamesRef.once("value").then(function(snapshot) {
-				//return snapshot.val();
 				if (snapshot.numChildren() === 0) {
 					var newGame = gamesRef.push({"gameStarted":false, "waitingCount":1});
+					$("#currently-joined").text("You are currently the only player who has joined and is waiting to begin."); // remove this -- it should be handled elsewhere
 					con.update({"gameID": newGame.key});
-					
 				}
 				else if (snapshot.numChildren() === 1) {
-					//console.log(Object.keys(snapshot.val())[0]);
 					database.ref("/games/" +Object.keys(snapshot.val())[0]).update({"waitingCount":updateWaitingCount()});
 					con.update({"gameID": Object.keys(snapshot.val())[0]});
-					console.log("updated waiting count in game");
 				}
 				else if (snapshot.numChildren() > 1) {
 					console.log("current Games: " + snapshot.numChildren());
 				}
 				else console.log("something went wrong");
-				
 			});
-			//check to see if gamesRef has any size, i.e., if games exist.
-			
-			/*
-			if (!currentGames) {
-				var newGame = gamesRef.push({"gameStarted":false, "waitingCount":updateWaitingCount()});
-			}
-			else if (currentGames.numChildren() > 0) {
-				console.log("currentGames:");
-				consol.log(currentGames);
-			}
-			*/
-			
-			//activateGameButton("#start-game");
 		}
 	});
-	
 });
 
 // Whenever a user clicks the start-game button
 $("#start-game").on("click", function (event) {
 	event.preventDefault();
+	console.log("begin game");
+	//$("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Starting game.');
+	
+	gamesRef.once("value").then(function(snapshot) {
+		if (snapshot.numChildren() === 1) {
+					database.ref("/games/" +Object.keys(snapshot.val())[0]).update({"gameStarted":true});
+		}
+	});
 });
