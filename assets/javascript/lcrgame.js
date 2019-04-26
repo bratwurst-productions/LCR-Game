@@ -152,11 +152,26 @@ gamesRef.on("child_added", function(snapshot) {
 	}
 	});
 	database.ref("/games/"+snapshot.key+"/gameStarted").on("value", function(snapshot) {
-			if (snapshot.val()) { 				//gameStarted === true
+			if (snapshot.val()) {
 				if (!$("#start-join-row").hasClass("invisible") && $("#dice-row").hasClass("invisible")) {
 					toggleInvisible("#start-join-row");
 					toggleInvisible("#dice-row");
 				}
+				if (!gameStarted) gameStarted = true;
+				
+				console.log(snapshot.ref.parent.key); // key of game started
+				
+				var gamePlayers = [];
+				
+				connectionsRef.orderByChild("gameID").equalTo(snapshot.ref.parent.key).on("child_added", function(snapshot) {
+				gamePlayers.push(snapshot.key);
+				});
+				
+				snapshot.ref.parent.update({"gamePlayers":gamePlayers, "currentPlayerIndex": Math.floor(Math.random() * gamePlayers.length)});
+				
+				
+				//get keys of all connections who are playing this game, in an ordered array
+				//start initial turn at a random position in this array
 				
 
 				//once we implement the current player turn logic, we will active the roll dice button for current player
