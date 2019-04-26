@@ -151,11 +151,21 @@ gamesRef.on("child_added", function(snapshot) {
 		//
 	}
 	});
-});
+	database.ref("/games/"+snapshot.key+"/gameStarted").on("value", function(snapshot) {
+			if (snapshot.val()) { 				//gameStarted === true
+				if (!$("#start-join-row").hasClass("invisible") && $("#dice-row").hasClass("invisible")) {
+					toggleInvisible("#start-join-row");
+					toggleInvisible("#dice-row");
+				}
+				
 
-gamesRef.on("child_changed", function(snapshot) {
-	console.log(snapshot.val());
-	if (snapshot.val().gameStarted) {
+				//once we implement the current player turn logic, we will active the roll dice button for current player
+				//activateGameButton("#dice-row");
+				
+				//note: currentPlayerTurn will be tracked as a child of the game we are in
+				//all players will have an event listener set which will notify them when the current player is equal to myPlayerID, and will activate their roll dice button,
+				//also, the game_agent will inform the player that it is his turn
+		
 		//re-deactivate or hide start game and join game buttons
 		//show inactive roll dice button
 		//perhaps have start game and join game in one row and roll dice in another row, 
@@ -166,7 +176,10 @@ gamesRef.on("child_changed", function(snapshot) {
 		// forfeits are mentioned by game agent.
 		//game agent history should be available if one were to scroll upward.
 		
-	}
+		//also update the connection-text with number of players currently playing, (for all players, at least right now before we allow for multiple concurrent games)
+		}
+	});
+		
 });
 
 $("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Click "Join Game" to enter waiting pool.');
@@ -318,6 +331,11 @@ $("#roll-dice").on("click", function (event) {
 	renderDice(playerRoll(userTokens));
 });
 
+function toggleInvisible(selector) {
+	if ($(selector).hasClass("invisible")) $(selector).removeClass("invisible");
+	else $(selector).addClass("invisible");
+}
+
 function activateGameButton(selector) {
 	$(selector).addClass("btn-primary").removeClass("btn-secondary");
 	$(selector).attr("disabled", false);
@@ -370,7 +388,7 @@ $("#start-game").on("click", function (event) {
 	
 	gamesRef.once("value").then(function(snapshot) {
 		if (snapshot.numChildren() === 1) {
-					database.ref("/games/" +Object.keys(snapshot.val())[0]).update({"gameStarted":true});
+					database.ref("/games/" +Object.keys(snapshot.val())[0]).update({"gameStarted":true, "centerPot": 0});
 		}
 	});
 });
