@@ -29,6 +29,8 @@ var myAvatarURL = "";
 var currentWaitingPlayers = 0;
 var gameStarted = false;
 var connectedUsers = 0;
+var gamesObj;
+var gameName;
 
 ////////////////////////////////////
 // firebase functions:
@@ -109,12 +111,32 @@ var connectionsUpdateFunc = function (snap) {
 	window.connections = snap.val();
 	$("#connected-viewers").text(numChildren + " player(s) connected.");
 	if (!myPlayerID) myPlayerID = playerArray[playerArray.length - 1];
-	$("#center-chips").text(centerTokens);
 	$("#chip-total").text(userTokens);
 	playerArray.indexOf(myPlayerID);
 	$("#player-number").text(playerArray.indexOf(myPlayerID) + 1); // ultimately, we don't want to display this number on the screen, because if someone leaves or becomes disconnected during a game, a player's player-number can change on the fly
 	// we want to identify player's via their avataaar
 	checkifanyplayerhaswon();
+}
+
+function checkifanyplayerhaswon() {
+	let userswithtokensleft = 0;
+	for (i = 0; i < gamesObj[gameName].gamePlayers.length; i++) {
+		if (connections[gamesObj[gameName].gamePlayers[i]].userTokens > 0) {
+			userswithtokensleft++;
+		}
+	}
+	if (userswithtokensleft === 1 && (playerArray.length > 1)) { // problem with this logic is that it is not looking at the gamePlayers. It is just looking at the playerArray, which includes connected players and waiting(joined) players
+		if (userTokens > 0) {
+			$("#game-status").prepend('<em><strong>game_agent</strong></em>&emsp;You Won!<br>');
+		} else {
+			$("#game-status").prepend('<em><strong>game_agent</strong></em>&emsp;You lost!<br>');
+		}
+		//whether this user won or lost, the game is over, so we want to disable the roll dice button and perhaps hide it as well
+		deactivateGameButton("#roll-dice");
+		if (!$("#dice-row").hasClass("invisible")) toggleInvisible("#dice-row");
+	}
+	//this function should iterate through all of the connections(players) to
+	//check if only one player has chips remaining
 }
 
 function updateWaitingCount() {
@@ -136,6 +158,10 @@ connectionsRef.on("child_removed", function (snapshot) {
 		database.ref("/games/" + snapshot.val().gameID).update({
 			"waitingCount": waiting
 		});
+		// also remove player from list of players in the game, and forfeit player chips to center chips.
+		// if he is the last player to disconnect from the game, remove the game as well.
+		console.log("need to remove this id from gamePlayers: " + snapshot.key);
+		
 	}
 });
 
@@ -150,6 +176,39 @@ var childUpdateFunc = function (snap) {
 	}
 }
 connectionsRef.on("child_changed", childUpdateFunc);
+
+gamesRef.on("value", function(snapshot){
+	gamesObj = snapshot.val();
+	if (gamesObj) {
+		console.log(gamesObj);
+		gameName = Object.keys(gamesObj);
+		console.log("game name / ID is " + gameName);
+		console.log(gamesObj[gameName].gameStarted);
+		if (gamesObj[gameName].gameStarted) { // game has been started
+			//
+			
+			console.log(gamesObj[gameName].gamePlayers);
+			if (myPlayerID && typeof gamesObj[gameName].gamePlayers !== "undefined") {
+				if (gamesObj[gameName].gamePlayers.length === gamesObj[gameName].waitingCount && gamesObj[gameName].waitingCount >= 3) {
+					if (typeof gamesObj[gameName].currentPlayerIndex === "undefined") {
+						var randomizedIndex = Math.floor(Math.random() * gamesObj[gameName].waitingCount);
+						database.ref("/games/"+gameName).update({
+							"currentPlayerIndex": randomizedIndex
+						});
+					}
+				}
+				if (gamesObj[gameName].gamePlayers.includes(myPlayerID)) {
+					if (gamesObj[gameName].gamePlayers[gamesObj[gameName].currentPlayerIndex] === myPlayerID) {
+						console.log("It is your turn, " + myPlayerID)
+						//activate roll dice button
+						activateGameButton("#roll-dice");
+					}
+					else deactivateGameButton("#roll-dice");
+				}
+			}
+		}
+	}
+});
 
 gamesRef.on("child_added", function (snapshot) {
 	database.ref("/games/" + snapshot.key + "/waitingCount").on("value", function (snapshot) {
@@ -166,15 +225,20 @@ gamesRef.on("child_added", function (snapshot) {
 			//
 		}
 	});
+	database.ref("/games/" + snapshot.key + "/centerPot").on("value", function (snapshot) {
+		centerTokens = snapshot.val();
+		$("#center-chips").text(centerTokens);
+	});
 	database.ref("/games/" + snapshot.key + "/gameStarted").on("value", function (snapshot) {
-		activateGameButton("#roll-dice"); // this should actually be done by a listener that only activates the button when it is a player's
+		//activateGameButton("#roll-dice"); // this should actually be done by a listener that only activates the button when it is a player's
 		if (snapshot.val()) { // then the firebase value for gameStarted has changed now to true
 			if (!$("#start-join-row").hasClass("invisible") && $("#dice-row").hasClass("invisible")) {
 				toggleInvisible("#start-join-row");
 				toggleInvisible("#dice-row");
+				//activiate roll dice button only for the player whose turn it is
 			}
 			if (!gameStarted) gameStarted = true;
-
+			$("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Game Started!');
 			//console.log(snapshot.ref.parent.key); // key of game started
 
 			var gamePlayers = [];
@@ -186,16 +250,33 @@ gamesRef.on("child_added", function (snapshot) {
 			//update firebase game with gamePlayers
 			//start initial turn at a random position in this array
 			snapshot.ref.parent.update({
-				"gamePlayers": gamePlayers,
-				"currentPlayerIndex": Math.floor(Math.random() * gamePlayers.length)
+				"gamePlayers": gamePlayers
+			});
+			database.ref("/games/" + snapshot.ref.parent.key + "/currentRollAvatar").on("value", function (snapshot) {
+				
+				if (typeof snapshot.val() !== "undefined" && snapshot.val()) {
+					var AvatarID = snapshot.val();
+					$("#game-status").html(`<em><strong>game_agent</strong></em>&emsp;Player <img src="${AvatarID}" alt="player" height="10%" width="10%"> rolled:`);
+				}
+				
+				//var diceArray = 
+				database.ref("/games/" + snapshot.ref.parent.key + "/currentRoll").once("value").then(function (snapshot) {
+					if (snapshot.val()) {
+						
+						showDice(snapshot.val());
+					}
+					//console.log("current roll equals:");
+					//console.log(snapshot.val());
+					
+					
+				});
 			});
 
-			database.ref("/games/" + snapshot.ref.parent.key + "/currentPlayerIndex").on("value", function (snapshot) {
+			/*database.ref("/games/" + snapshot.ref.parent.key + "/currentPlayerIndex").on("value", function (snapshot) {
 				console.log(snapshot);
 				console.log(snapshot.key);
 				console.log(snapshot.val());
-			});
-			// turn
+			});*/
 			//this will also guarantee that any player who doesn't get into the game will just be spectating
 			//the avatar of the rolling player will be shown in the game panel, perhaps in the dice row so that we don't confuse them with the players' own avatar
 
@@ -277,81 +358,70 @@ function playerRoll(dice) {
 	for (var i = 0; i < dice; i++) {
 		rollResults.push(rollDie());
 	}
+	//push results to game location in firebase so they can be rendered for other players as well.
+	database.ref("/games/"+gameName).update({
+		"currentRoll":rollResults,
+		"currentRollPlayer": myPlayerID,
+		"currentRollAvatar": myAvatarURL
+	});
 	return rollResults;
 }
 
 function renderDice(rollResultsArray) {
 
 
-	var leftPlayer;
-	if (playerArray.indexOf(myPlayerID) === 0) leftPlayer = playerArray.length - 1;
-	else leftPlayer = playerArray.indexOf(myPlayerID) - 1;
+	var leftPlayer; // this logic needs to be updated to use the order of game players
+	//console.log(gamesObj);
+	if (gamesObj[gameName].gamePlayers.indexOf(myPlayerID) === 0) leftPlayer = gamesObj[gameName].gamePlayers[gamesObj[gameName].gamePlayers.length-1];
+	else leftPlayer = gamesObj[gameName].gamePlayers[gamesObj[gameName].gamePlayers.indexOf(myPlayerID) - 1];
+	console.log("leftPlayer: " + leftPlayer);
 
-	var rightPlayer;
-	if (playerArray.indexOf(myPlayerID) === playerArray.length - 1) rightPlayer = 0;
-	else rightPlayer = playerArray.indexOf(myPlayerID) + 1;
+	var rightPlayer; // this logic needs to be updated to use the order of game players
+	if (gamesObj[gameName].gamePlayers.indexOf(myPlayerID) === gamesObj[gameName].gamePlayers.length - 1) rightPlayer = gamesObj[gameName].gamePlayers[0];
+	else rightPlayer = gamesObj[gameName].gamePlayers[gamesObj[gameName].gamePlayers.indexOf(myPlayerID) + 1];
+	console.log("rightPlayer: " + rightPlayer);
+	
+	for (var i = 0; i < rollResultsArray.length; i++) {
+		if (rollResultsArray[i] === "R") { //pass chip to left, player loses a chip
+			userTokens--;
+			con.update({userTokens: userTokens});
+			connections[rightPlayer].userTokens++;
+			connectionsRef.child(rightPlayer).update({userTokens:connections[rightPlayer].userTokens});
+		}
+		if (rollResultsArray[i] === "L") { //pass chip to left, player loses a chip
+			userTokens--;
+			con.update({userTokens: userTokens});
+			connections[leftPlayer].userTokens++;
+			connectionsRef.child(leftPlayer).update({userTokens: connections[leftPlayer].userTokens});
+		}
+		if (rollResultsArray[i] === "C") { //pass chip to the center pile, chip is out of circulation now , player loses a chip
+			userTokens--;
+			con.update({userTokens: userTokens});
+			database.ref("/games/"+gameName+"/centerPot").once("value").then(function(snapshot) {
+			database.ref("/games/"+gameName).update({"centerPot":snapshot.val()+1});
+			});
+		}
+	}
+}
+
+function showDice(rollResultsArray) {
+
+	$("#dice-images").html("");
 
 	for (var i = 0; i < rollResultsArray.length; i++) {
-		//Do nothing, player loses no chips 
 		if (rollResultsArray[i] === "snake_eye") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/dot.png" />');
 		}
-		//pass chip to right of player, player loses a chip
 		if (rollResultsArray[i] === "R") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/r.png" />');
-			userTokens--;
-			con.update({
-				userTokens: userTokens
-			});
-			connections[playerArray[rightPlayer]].userTokens++;
-			connectionsRef.child(playerArray[rightPlayer]).update({
-				userTokens: connections[playerArray[rightPlayer]].userTokens
-			});
 		}
-		//pass chip to left, player loses a chip
 		if (rollResultsArray[i] === "L") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/l.png" />');
-			userTokens--;
-			con.update({
-				userTokens: userTokens
-			});
-			connections[playerArray[leftPlayer]].userTokens++;
-			connectionsRef.child(playerArray[leftPlayer]).update({
-				userTokens: connections[playerArray[leftPlayer]].userTokens
-			});
 		}
-		//pass chip to the center pile, chip is out of circulation now , player loses a chip
 		if (rollResultsArray[i] === "C") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/c.png" />');
-			userTokens--;
-			con.update({
-				userTokens: userTokens
-			});
 		}
 	}
-
-	checkifanyplayerhaswon()
-}
-
-
-function checkifanyplayerhaswon() {
-	let userswithtokensleft = 0;
-	console.log(playerArray.length)
-	for (i = 0; i < playerArray.length; i++) {
-		console.log(connections[playerArray[i]].userTokens)
-		if (connections[playerArray[i]].userTokens > 0) {
-			userswithtokensleft++;
-		}
-	}
-	if (userswithtokensleft === 1) {
-		if (userTokens > 0) {
-			window.alert("You won!")
-		} else {
-			window.alert("You lost!")
-		}
-	}
-	//this function should iterate through all of the connections(players) to
-	//check if only one player has chips remaining
 }
 
 ////////////////////////////////////
@@ -393,8 +463,20 @@ $("#clear-comments").on("click", function (event) {
 // Whenever a user clicks the roll dice button
 $("#roll-dice").on("click", function (event) {
 	event.preventDefault(); //is this necessary for all buttons or only for "input" type buttons?
-	$("#dice-images").html("");
 	renderDice(playerRoll(userTokens));
+	
+	//increment currentPlayerIndex:
+	console.log("current player index: " + gamesObj[gameName].currentPlayerIndex);
+	console.log("length of player array " + gamesObj[gameName].gamePlayers.length);
+	var nextIndex;
+	if (gamesObj[gameName].currentPlayerIndex < gamesObj[gameName].gamePlayers.length-1) nextIndex = gamesObj[gameName].currentPlayerIndex + 1;
+	else if (gamesObj[gameName].currentPlayerIndex === gamesObj[gameName].gamePlayers.length-1) nextIndex = 0;
+	// write next index to game location in firebase and disable roll button
+	database.ref("/games/"+gameName).update({
+							"currentPlayerIndex": nextIndex
+						});
+	deactivateGameButton("#roll-dice");
+	
 });
 
 function toggleInvisible(selector) {
@@ -434,7 +516,8 @@ $("#join-game").on("click", function (event) {
 				if (snapshot.numChildren() === 0) {
 					var newGame = gamesRef.push({
 						"gameStarted": false,
-						"waitingCount": 1
+						"waitingCount": 1,
+						"centerPot":0
 					});
 					$("#currently-joined").text("You are currently the only player who has joined and is waiting to begin."); // remove this -- it should be handled elsewhere
 					con.update({
