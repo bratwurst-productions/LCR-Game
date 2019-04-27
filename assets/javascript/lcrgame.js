@@ -330,7 +330,6 @@ function renderDice(rollResultsArray) {
 		}
 	}
 
-	checkifanyplayerhaswon()
 }
 
 
@@ -343,7 +342,7 @@ function checkifanyplayerhaswon() {
 			userswithtokensleft++;
 		}
 	}
-	if (userswithtokensleft === 1) {
+	if (userswithtokensleft === 1 && (playerArray.length > 1)) {
 		if (userTokens > 0) {
 			window.alert("You won!")
 		} else {
