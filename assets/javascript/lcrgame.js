@@ -3,6 +3,21 @@ The Rules
 https://plentifun.com/rules-to-play-left-right-center-lcr-dice-game
 */
 
+//Load randomized background image:
+
+switch (Math.floor(Math.random() * 3)) {
+	case 0:
+		$("body").css("background", `darkslategray url(./assets/background_images/Oriental_Lizard-reduced.jpg) no-repeat top center/cover fixed`);
+		break;
+	case 1:
+		$("body").css("background", `darkslategray url("./assets/background_images/sugarloaf_sunrise_reduced_cropped.jpg") no-repeat top center/cover fixed`); // this one seems to slow down the loading of the app the most. Can it be reduced in size?
+		break;
+	case 2:
+		$("body").css("background", `darkslategray url("./assets/background_images/Gulls_on_Morro_Strand_State_Beach_reduced_cropped.jpg") no-repeat top center/cover fixed`);
+		break;
+		// no default case needed because we have a fallback in style.css for background color
+}
+
 ////////////////////////////////////
 // global definitions:
 ////////////////////////////////////
@@ -14,19 +29,6 @@ var myAvatarURL = "";
 var currentWaitingPlayers = 0;
 var gameStarted = false;
 var connectedUsers = 0;
-
-switch (Math.floor(Math.random() * 3)) {
-	case 0:
-		$("body").css("background", `darkslategray url(./assets/background_images/Oriental_Lizard-reduced.jpg) no-repeat top center/cover fixed`);
-		break;
-	case 1:
-		$("body").css("background", `darkslategray url("./assets/background_images/sugarloaf_sunrise_reduced_cropped.jpg") no-repeat top center/cover fixed`);
-		break;
-	case 2:
-		$("body").css("background", `darkslategray url("./assets/background_images/Gulls_on_Morro_Strand_State_Beach_reduced_cropped.jpg") no-repeat top center/cover fixed`);
-		break;
-		// no default case needed because we have a fallback in style.css for background color
-}
 
 ////////////////////////////////////
 // firebase functions:
@@ -55,10 +57,11 @@ var database = firebase.database();
 // connectionsRef references a specific location in our database.
 // All of our connections will be stored in this directory.
 var connectionsRef = database.ref("/connections");
+
+// gamesRef refers to the firebase location where games will be stored.
 var gamesRef = database.ref("/games");
 
-// '.info/connected' is a special location provided by Firebase that is updated
-// every time the client's connection state changes.
+// '.info/connected' is a special location provided by Firebase that is updated every time the client's connection state changes.
 // '.info/connected' is a boolean value, true if the client is connected and false if they are not.
 var connectedRef = database.ref(".info/connected");
 
@@ -82,7 +85,17 @@ connectedRef.on("value", function (snap) {
 		});
 		
 		// Remove user from the connection list when they disconnect.
-		con.onDisconnect().remove(); // update waiting players or matched players
+		con.onDisconnect().remove();
+		
+		/*con.onDisconnect().disconnectFunction() // this isn't working but the idea is to remove yourself from the game and reduce waitingCount as appropriate, even if you are the last connection to disconnect, in which case the game should be removed as well.
+		function disconnectFunction() {
+			
+		var waiting = updateWaitingCount();
+		database.ref("/games/" + snapshot.val().gameID).update({"waitingCount": waiting}); // also need to remove player from games/gamePlayers
+		con.remove(); // update waiting players or matched players
+		}*/
+		
+		
 	}
 	window.con = con;
 });
@@ -101,16 +114,6 @@ var connectionsUpdateFunc = function (snap) {
 	playerArray.indexOf(myPlayerID);
 	$("#player-number").text(playerArray.indexOf(myPlayerID)+1); // ultimately, we don't want to display this number on the screen, because if someone leaves or becomes disconnected during a game, a player's player-number can change on the fly
 	// we want to identify player's via their avataaar
-}
-// When first loaded or when the connections list changes...
-var childUpdateFunc = function (snap) {
-	
-	if (myPlayerID) {
-		if (myPlayerID === snap.key) {
-			userTokens = snap.val().userTokens;
-			$("#chiptotal").text(userTokens);
-		}
-	}
 }
 
 function updateWaitingCount() {
@@ -133,6 +136,16 @@ connectionsRef.on("child_removed", function(snapshot) {
 	}
 });
 
+// When first loaded or when the connections list changes...
+var childUpdateFunc = function (snap) {
+	
+	if (myPlayerID) {
+		if (myPlayerID === snap.key) {
+			userTokens = snap.val().userTokens;
+			$("#chiptotal").text(userTokens);
+		}
+	}
+}
 connectionsRef.on("child_changed", childUpdateFunc);
 
 gamesRef.on("child_added", function(snapshot) {
@@ -152,30 +165,34 @@ gamesRef.on("child_added", function(snapshot) {
 	}
 	});
 	database.ref("/games/"+snapshot.key+"/gameStarted").on("value", function(snapshot) {
-			if (snapshot.val()) {
+		activateGameButton("#roll-dice"); // this should actually be done by a listener that only activates the button when it is a player's
+			if (snapshot.val()) {  // then the firebase value for gameStarted has changed now to true
 				if (!$("#start-join-row").hasClass("invisible") && $("#dice-row").hasClass("invisible")) {
 					toggleInvisible("#start-join-row");
 					toggleInvisible("#dice-row");
 				}
 				if (!gameStarted) gameStarted = true;
 				
-				console.log(snapshot.ref.parent.key); // key of game started
+				//console.log(snapshot.ref.parent.key); // key of game started
 				
 				var gamePlayers = [];
 				
 				connectionsRef.orderByChild("gameID").equalTo(snapshot.ref.parent.key).on("child_added", function(snapshot) {
 				gamePlayers.push(snapshot.key);
-				});
+				}); //get keys of all connections who are playing this game, in an ordered array called gamePlayers
 				
+				//update firebase game with gamePlayers
+				//start initial turn at a random position in this array
 				snapshot.ref.parent.update({"gamePlayers":gamePlayers, "currentPlayerIndex": Math.floor(Math.random() * gamePlayers.length)});
 				
-				
-				//get keys of all connections who are playing this game, in an ordered array
-				//start initial turn at a random position in this array
-				
-
-				//once we implement the current player turn logic, we will active the roll dice button for current player
-				//activateGameButton("#dice-row");
+				database.ref("/games/"+snapshot.ref.parent.key+"/currentPlayerIndex").on("value", function(snapshot) {
+					console.log(snapshot);
+					console.log(snapshot.key);
+					console.log(snapshot.val());
+				});
+				// turn
+				//this will also guarantee that any player who doesn't get into the game will just be spectating
+				//the avatar of the rolling player will be shown in the game panel, perhaps in the dice row so that we don't confuse them with the players' own avatar
 				
 				//note: currentPlayerTurn will be tracked as a child of the game we are in
 				//all players will have an event listener set which will notify them when the current player is equal to myPlayerID, and will activate their roll dice button,
