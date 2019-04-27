@@ -70,7 +70,7 @@ connectedRef.on("value", function (snap) {
 
 	// If they are connected..
 	if (snap.val()) {
-		
+
 		if (!myAvatarURL) {
 			myAvatarURL = generateRandomAvatar();
 			$("#avatar").html(`<img src=${myAvatarURL} alt="player avatar" height="25%" width="25%">`);
@@ -83,10 +83,10 @@ connectedRef.on("value", function (snap) {
 			"myAvatarURL": myAvatarURL,
 			"userTokens": userTokens
 		});
-		
+
 		// Remove user from the connection list when they disconnect.
 		con.onDisconnect().remove();
-		
+
 		/*con.onDisconnect().disconnectFunction() // this isn't working but the idea is to remove yourself from the game and reduce waitingCount as appropriate, even if you are the last connection to disconnect, in which case the game should be removed as well.
 		function disconnectFunction() {
 			
@@ -94,14 +94,14 @@ connectedRef.on("value", function (snap) {
 		database.ref("/games/" + snapshot.val().gameID).update({"waitingCount": waiting}); // also need to remove player from games/gamePlayers
 		con.remove(); // update waiting players or matched players
 		}*/
-		
-		
+
+
 	}
 	window.con = con;
 });
 
 var connectionsUpdateFunc = function (snap) {
-	
+
 	// Display the viewer count in the html.
 	// The number of online users is the number of children in the connections list.
 	var numChildren = snap.numChildren();
@@ -112,33 +112,36 @@ var connectionsUpdateFunc = function (snap) {
 	$("#center-chips").text(centerTokens);
 	$("#chip-total").text(userTokens);
 	playerArray.indexOf(myPlayerID);
-	$("#player-number").text(playerArray.indexOf(myPlayerID)+1); // ultimately, we don't want to display this number on the screen, because if someone leaves or becomes disconnected during a game, a player's player-number can change on the fly
+	$("#player-number").text(playerArray.indexOf(myPlayerID) + 1); // ultimately, we don't want to display this number on the screen, because if someone leaves or becomes disconnected during a game, a player's player-number can change on the fly
 	// we want to identify player's via their avataaar
+	checkifanyplayerhaswon();
 }
 
 function updateWaitingCount() {
-	connectionsRef.once("value").then(function(snapshot) {
-			connections = snapshot.val();
-			playerArray = Object.keys(connections);
-		});
+	connectionsRef.once("value").then(function (snapshot) {
+		connections = snapshot.val();
+		playerArray = Object.keys(connections);
+	});
 	var waiting = 0;
 	for (var x = 0; x < playerArray.length; x++) {
 		if (connections[playerArray[x]].waiting) waiting++;
-	} 
+	}
 	return waiting;
 }
 
 connectionsRef.on("value", connectionsUpdateFunc);
-connectionsRef.on("child_removed", function(snapshot) {
+connectionsRef.on("child_removed", function (snapshot) {
 	if (typeof snapshot.val().gameID !== "undefined") {
 		var waiting = updateWaitingCount();
-		database.ref("/games/" + snapshot.val().gameID).update({"waitingCount": waiting});
+		database.ref("/games/" + snapshot.val().gameID).update({
+			"waitingCount": waiting
+		});
 	}
 });
 
 // When first loaded or when the connections list changes...
 var childUpdateFunc = function (snap) {
-	
+
 	if (myPlayerID) {
 		if (myPlayerID === snap.key) {
 			userTokens = snap.val().userTokens;
@@ -148,70 +151,72 @@ var childUpdateFunc = function (snap) {
 }
 connectionsRef.on("child_changed", childUpdateFunc);
 
-gamesRef.on("child_added", function(snapshot) {
-	database.ref("/games/"+snapshot.key+"/waitingCount").on("value", function(snapshot) {
+gamesRef.on("child_added", function (snapshot) {
+	database.ref("/games/" + snapshot.key + "/waitingCount").on("value", function (snapshot) {
 		var waiting = snapshot.val();
 		//console.log("waiting on game: " + snapshot.val());
 		$("#currently-joined").text("There are " + waiting + " player(s) currently joined and waiting to begin.");
-	if (waiting >= 3) {
-		//if start button not active for waiting players, activate start button for all waiting players
-		if ($("#start-game").attr("disabled")) activateGameButton("#start-game");
-		//
-	}
-	else if (waiting < 3) {
-		//if start button active for waiting players, inactivate it for all waiting players
-		if (!$("#start-game").attr("disabled")) deactivateGameButton("#start-game");
-		//
-	}
-	});
-	database.ref("/games/"+snapshot.key+"/gameStarted").on("value", function(snapshot) {
-		activateGameButton("#roll-dice"); // this should actually be done by a listener that only activates the button when it is a player's
-			if (snapshot.val()) {  // then the firebase value for gameStarted has changed now to true
-				if (!$("#start-join-row").hasClass("invisible") && $("#dice-row").hasClass("invisible")) {
-					toggleInvisible("#start-join-row");
-					toggleInvisible("#dice-row");
-				}
-				if (!gameStarted) gameStarted = true;
-				
-				//console.log(snapshot.ref.parent.key); // key of game started
-				
-				var gamePlayers = [];
-				
-				connectionsRef.orderByChild("gameID").equalTo(snapshot.ref.parent.key).on("child_added", function(snapshot) {
-				gamePlayers.push(snapshot.key);
-				}); //get keys of all connections who are playing this game, in an ordered array called gamePlayers
-				
-				//update firebase game with gamePlayers
-				//start initial turn at a random position in this array
-				snapshot.ref.parent.update({"gamePlayers":gamePlayers, "currentPlayerIndex": Math.floor(Math.random() * gamePlayers.length)});
-				
-				database.ref("/games/"+snapshot.ref.parent.key+"/currentPlayerIndex").on("value", function(snapshot) {
-					console.log(snapshot);
-					console.log(snapshot.key);
-					console.log(snapshot.val());
-				});
-				// turn
-				//this will also guarantee that any player who doesn't get into the game will just be spectating
-				//the avatar of the rolling player will be shown in the game panel, perhaps in the dice row so that we don't confuse them with the players' own avatar
-				
-				//note: currentPlayerTurn will be tracked as a child of the game we are in
-				//all players will have an event listener set which will notify them when the current player is equal to myPlayerID, and will activate their roll dice button,
-				//also, the game_agent will inform the player that it is his turn
-		
-		//re-deactivate or hide start game and join game buttons
-		//show inactive roll dice button
-		//perhaps have start game and join game in one row and roll dice in another row, 
-		//and simply toggle rows invisible/visible
-		//game_agent should determine who goes first pseudo-randomly and then proceed in order.
-		//if someone doesn't roll within a reasonable amount of time, they either forfeit their chips to the center pot (attribute of the active game), or they roll automatically.
-		//if they leave by closing browser or tab or otherwise disconnecting, their chips are forfeited to center pot.
-		// forfeits are mentioned by game agent.
-		//game agent history should be available if one were to scroll upward.
-		
-		//also update the connection-text with number of players currently playing, (for all players, at least right now before we allow for multiple concurrent games)
+		if (waiting >= 3) {
+			//if start button not active for waiting players, activate start button for all waiting players
+			if ($("#start-game").attr("disabled")) activateGameButton("#start-game");
+			//
+		} else if (waiting < 3) {
+			//if start button active for waiting players, inactivate it for all waiting players
+			if (!$("#start-game").attr("disabled")) deactivateGameButton("#start-game");
+			//
 		}
 	});
-		
+	database.ref("/games/" + snapshot.key + "/gameStarted").on("value", function (snapshot) {
+		activateGameButton("#roll-dice"); // this should actually be done by a listener that only activates the button when it is a player's
+		if (snapshot.val()) { // then the firebase value for gameStarted has changed now to true
+			if (!$("#start-join-row").hasClass("invisible") && $("#dice-row").hasClass("invisible")) {
+				toggleInvisible("#start-join-row");
+				toggleInvisible("#dice-row");
+			}
+			if (!gameStarted) gameStarted = true;
+
+			//console.log(snapshot.ref.parent.key); // key of game started
+
+			var gamePlayers = [];
+
+			connectionsRef.orderByChild("gameID").equalTo(snapshot.ref.parent.key).on("child_added", function (snapshot) {
+				gamePlayers.push(snapshot.key);
+			}); //get keys of all connections who are playing this game, in an ordered array called gamePlayers
+
+			//update firebase game with gamePlayers
+			//start initial turn at a random position in this array
+			snapshot.ref.parent.update({
+				"gamePlayers": gamePlayers,
+				"currentPlayerIndex": Math.floor(Math.random() * gamePlayers.length)
+			});
+
+			database.ref("/games/" + snapshot.ref.parent.key + "/currentPlayerIndex").on("value", function (snapshot) {
+				console.log(snapshot);
+				console.log(snapshot.key);
+				console.log(snapshot.val());
+			});
+			// turn
+			//this will also guarantee that any player who doesn't get into the game will just be spectating
+			//the avatar of the rolling player will be shown in the game panel, perhaps in the dice row so that we don't confuse them with the players' own avatar
+
+			//note: currentPlayerTurn will be tracked as a child of the game we are in
+			//all players will have an event listener set which will notify them when the current player is equal to myPlayerID, and will activate their roll dice button,
+			//also, the game_agent will inform the player that it is his turn
+
+			//re-deactivate or hide start game and join game buttons
+			//show inactive roll dice button
+			//perhaps have start game and join game in one row and roll dice in another row, 
+			//and simply toggle rows invisible/visible
+			//game_agent should determine who goes first pseudo-randomly and then proceed in order.
+			//if someone doesn't roll within a reasonable amount of time, they either forfeit their chips to the center pot (attribute of the active game), or they roll automatically.
+			//if they leave by closing browser or tab or otherwise disconnecting, their chips are forfeited to center pot.
+			// forfeits are mentioned by game agent.
+			//game agent history should be available if one were to scroll upward.
+
+			//also update the connection-text with number of players currently playing, (for all players, at least right now before we allow for multiple concurrent games)
+		}
+	});
+
 });
 
 $("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Click "Join Game" to enter waiting pool.');
@@ -277,8 +282,8 @@ function playerRoll(dice) {
 
 function renderDice(rollResultsArray) {
 
-	
-	var leftPlayer; 
+
+	var leftPlayer;
 	if (playerArray.indexOf(myPlayerID) === 0) leftPlayer = playerArray.length - 1;
 	else leftPlayer = playerArray.indexOf(myPlayerID) - 1;
 
@@ -295,7 +300,9 @@ function renderDice(rollResultsArray) {
 		if (rollResultsArray[i] === "R") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/r.png" />');
 			userTokens--;
-			con.update({userTokens: userTokens});
+			con.update({
+				userTokens: userTokens
+			});
 			connections[playerArray[rightPlayer]].userTokens++;
 			connectionsRef.child(playerArray[rightPlayer]).update({
 				userTokens: connections[playerArray[rightPlayer]].userTokens
@@ -305,7 +312,9 @@ function renderDice(rollResultsArray) {
 		if (rollResultsArray[i] === "L") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/l.png" />');
 			userTokens--;
-			con.update({userTokens: userTokens});
+			con.update({
+				userTokens: userTokens
+			});
 			connections[playerArray[leftPlayer]].userTokens++;
 			connectionsRef.child(playerArray[leftPlayer]).update({
 				userTokens: connections[playerArray[leftPlayer]].userTokens
@@ -315,9 +324,34 @@ function renderDice(rollResultsArray) {
 		if (rollResultsArray[i] === "C") {
 			$("#dice-images").append('<img class="diceimage" src="assets/images/c.png" />');
 			userTokens--;
-			con.update({userTokens: userTokens});
+			con.update({
+				userTokens: userTokens
+			});
 		}
 	}
+
+	checkifanyplayerhaswon()
+}
+
+
+function checkifanyplayerhaswon() {
+	let userswithtokensleft = 0;
+	console.log(playerArray.length)
+	for (i = 0; i < playerArray.length; i++) {
+		console.log(connections[playerArray[i]].userTokens)
+		if (connections[playerArray[i]].userTokens > 0) {
+			userswithtokensleft++;
+		}
+	}
+	if (userswithtokensleft === 1) {
+		if (userTokens > 0) {
+			window.alert("You won!")
+		} else {
+			window.alert("You lost!")
+		}
+	}
+	//this function should iterate through all of the connections(players) to
+	//check if only one player has chips remaining
 }
 
 ////////////////////////////////////
@@ -375,9 +409,9 @@ function activateGameButton(selector) {
 	else if (selector.includes("join")) $(selector).html("Join Game");
 }
 
-function deactivateGameButton (selector) {
+function deactivateGameButton(selector) {
 	$(selector).addClass("btn-secondary").removeClass("btn-primary");
-	$(selector).attr("disabled","disabled");
+	$(selector).attr("disabled", "disabled");
 	if (selector.includes("join")) $(selector).html("<i>Join Game</i>");
 	else if (selector.includes("start")) $(selector).html("<i>Start Game</i>");
 }
@@ -387,26 +421,35 @@ $("#join-game").on("click", function (event) {
 	event.preventDefault(); // commenting this out didn't seem to cause any issues for this "submit" type button
 	//if waiting = false, then deactive join game button but don't activate start game button until at least three players are waiting (maybe cause start button to become visible if it begins invisible
 	// also, change waiting to true, and set matched to false and push to firebase
-	var readOnce = con.once("value").then(function(snapshot) {
+	var readOnce = con.once("value").then(function (snapshot) {
 		var myValues = snapshot.val();
 		if (!myValues.waiting) {
-			con.update({"waiting": true, "matched":false});
+			con.update({
+				"waiting": true,
+				"matched": false
+			});
 			deactivateGameButton("#join-game");
 			$("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Waiting to start game....');
-			gamesRef.once("value").then(function(snapshot) {
+			gamesRef.once("value").then(function (snapshot) {
 				if (snapshot.numChildren() === 0) {
-					var newGame = gamesRef.push({"gameStarted":false, "waitingCount":1});
+					var newGame = gamesRef.push({
+						"gameStarted": false,
+						"waitingCount": 1
+					});
 					$("#currently-joined").text("You are currently the only player who has joined and is waiting to begin."); // remove this -- it should be handled elsewhere
-					con.update({"gameID": newGame.key});
-				}
-				else if (snapshot.numChildren() === 1) {
-					database.ref("/games/" +Object.keys(snapshot.val())[0]).update({"waitingCount":updateWaitingCount()});
-					con.update({"gameID": Object.keys(snapshot.val())[0]});
-				}
-				else if (snapshot.numChildren() > 1) {
+					con.update({
+						"gameID": newGame.key
+					});
+				} else if (snapshot.numChildren() === 1) {
+					database.ref("/games/" + Object.keys(snapshot.val())[0]).update({
+						"waitingCount": updateWaitingCount()
+					});
+					con.update({
+						"gameID": Object.keys(snapshot.val())[0]
+					});
+				} else if (snapshot.numChildren() > 1) {
 					console.log("current Games: " + snapshot.numChildren());
-				}
-				else console.log("something went wrong");
+				} else console.log("something went wrong");
 			});
 		}
 	});
@@ -417,10 +460,13 @@ $("#start-game").on("click", function (event) {
 	event.preventDefault();
 	console.log("begin game");
 	//$("#game-status").html('<em><strong>game_agent</strong></em>&emsp;Starting game.');
-	
-	gamesRef.once("value").then(function(snapshot) {
+
+	gamesRef.once("value").then(function (snapshot) {
 		if (snapshot.numChildren() === 1) {
-					database.ref("/games/" +Object.keys(snapshot.val())[0]).update({"gameStarted":true, "centerPot": 0});
+			database.ref("/games/" + Object.keys(snapshot.val())[0]).update({
+				"gameStarted": true,
+				"centerPot": 0
+			});
 		}
 	});
 });
