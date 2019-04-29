@@ -13,7 +13,7 @@
 	</head>
 	<body>
 		<div class="jumbotron">
-						<div class="row">
+				<div class="row">
 					<div class="col-auto"> <!-- not sure why this won't float right, maybe it is because we are in jumbotron-->
 						<div id="connected-viewers"></div>
 					</div>
@@ -45,11 +45,11 @@
 							</div>
 							<div class="card-body">
 								<div class="row" id="start-join-row">
-									<div class="col" id="join-button-col">
+									<div class="col-md-6" id="join-button-col">
 										<button id="join-game" class="btn btn-primary game-btn" type="submit">Join Game</button>
 									</div>
-									<div class="col" id="start-button-col">
-										<button id="start-game" class="btn btn-secondary game-btn" type="submit" disabled><i>Start Game</i></button> <!-- this button is invisible or inactive until at least three players have entered the "waiting pool" by pressing Join Game, after which time it become visible/active for the waiting players, any one of whom can begin the game by pressing this button. -->
+									<div class="col-md-6" id="start-button-col">
+										<button id="start-game" class="btn btn-secondary game-btn" type="submit" disabled><i>Start Game</i></button>
 									</div>
 								</div>
 								<div id="dice-row" class="row invisible">
@@ -63,13 +63,13 @@
 				</div> 
 				<div class="col-md-6">
 					<div class="row">
-						<div class="card card-default col rightcol">
+						<div class="card card-default col">
 							<div class="card-body" id="chat-history">
 							</div>
 						</div>
 					</div>
 					<div class="row">
-						<div class="col rightcol" style="padding-left: 0px;padding-right: 0px;">
+						<div class="col" style="padding-left: 0px;padding-right: 0px;">
 							<div class="card-header">
 								<form>
 									<div class="form-group row">
@@ -98,12 +98,9 @@
 		<footer>
 			<p id="footer">&copy;Copyright Kegstands Unlimited</p>
 		</footer>
-		
 		<script src="https://code.jquery.com/jquery.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/5.10.0/firebase.js"></script>
 		<script src="./assets/javascript/lcrgame.js" type="text/javascript"></script>
 		<script src="./assets/generator/generateAvatar.js" type="text/javascript"></script>
-		
-		<!-- script src="https://sdk.scdn.co/spotify-player.js"></script -->
 	</body>
 </html>
