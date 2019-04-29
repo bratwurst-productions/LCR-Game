@@ -1,6 +1,4 @@
-# LCR Online -- the dice game Left-Center-Right
-
-Project Proposal -- LEFT-CENTER-RIGHT -- a game of dice
+# LCR Online-- the dice game Left-Center-Right
 
 Organization: Bratwurst Productions
 
