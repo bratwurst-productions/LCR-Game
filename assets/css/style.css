@@ -1,13 +1,11 @@
+.card-default {
+	width: initial;
+	margin: 0 .5rem;
+	
+}
+
 body {
 	background-color: darkslategray;
-}
-
-.row {
-	margin-right: 0;
-}
-
-#start-game {
-	width: 100%;
 }
 
 #footer, .jumbotron {
@@ -21,11 +19,8 @@ body {
 }
 
 .game-btn {
-	width: 100%;
-}
-
-.rightcol {
-	margin-left: 1rem;
+	width:100%;
+	margin: .25rem;
 }
 
 footer {
@@ -53,4 +48,8 @@ p#footer {
 
 .invisible {
 	display: none;
+}
+
+#start-join-row {
+		padding: 0;
 }
